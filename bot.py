@@ -1,6 +1,11 @@
 import asyncio
+import logging
 import numpy as np
 import numpy.typing as npt
+
+from contextlib import suppress
+from random import randint
+from typing import Optional
 
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.exceptions import TelegramBadRequest
@@ -8,12 +13,22 @@ from aiogram.filters import Command
 from aiogram.filters.callback_data import CallbackData
 from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder
 from aiogram.types import FSInputFile, URLInputFile, BufferedInputFile, InputMediaPhoto
+from config_reader import config
 
 RussNounsFN = "russian_nouns.txt"
 
 allRussWords: npt.ArrayLike = None
 wordLenMax = 100
 wordsByLen = npt.ArrayLike = None
+
+bot = Bot(token=config.bot_token.get_secret_value())
+dp = Dispatcher()
+logging.basicConfig(level=logging.INFO)
+
+@dp.message(Command("start"))
+async def cmd_start(message: types.Message):
+    await message.answer(f"Привет {message.from_user.full_name}!")
+
 
 
 # Start the bot
@@ -65,6 +80,10 @@ async def main():
     ###  print(f"{i}: {wordLens[i]}")  
 
     print(f"{str(allRussWords.size)} words are loaded")
+
+    await bot.delete_webhook(drop_pending_updates=True)
+    await dp.start_polling(bot)
+
 
 if __name__ == "__main__":
     asyncio.run(main())
