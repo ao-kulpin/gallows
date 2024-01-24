@@ -7,12 +7,17 @@ from contextlib import suppress
 from random import randint
 from typing import Optional
 
+from gameinfo import GameData
+import text
+
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.exceptions import TelegramBadRequest
-from aiogram.filters import Command
+from aiogram.filters import Command, StateFilter
 from aiogram.filters.callback_data import CallbackData
 from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder
 from aiogram.types import FSInputFile, URLInputFile, BufferedInputFile, InputMediaPhoto
+from aiogram.fsm.context import FSMContext
+
 from config_reader import config
 
 RussNounsFN = "russian_nouns.txt"
@@ -26,8 +31,28 @@ dp = Dispatcher()
 logging.basicConfig(level=logging.INFO)
 
 @dp.message(Command("start"))
-async def cmd_start(message: types.Message):
-    await message.answer(f"Привет {message.from_user.full_name}!")
+async def cmd_start(message: types.Message, state: FSMContext):
+    gd = GameData(userName=message.from_user.first_name)
+    ud = gd.userData
+    await state.set_data({"gameData": gd})
+    print(f"start: gd({gd}) ud({ud})")
+    builder = InlineKeyboardBuilder()
+    builder.row(types.InlineKeyboardButton(text="Я задумал(а) слово", callback_data="user_word"))
+    builder.row(types.InlineKeyboardButton(text="Пошел в ... c такими играми", callback_data="user_away"))
+
+    ud.startMsg = await message.answer(text.userGreet.format(userName=gd.userName), parse_mode="html", reply_markup=builder.as_markup())
+    await state.set_state("userStart")
+
+@dp.callback_query(StateFilter("userStart"),  F.data == "user_away")
+async def user_away(callback: types.CallbackQuery, state: FSMContext):
+    print(f"data:{await state.get_data()}")
+    gd = (await state.get_data())["gameData"]
+    ud = gd.userData
+    print(f"away: gd({gd}) ud({ud})")
+    await ud.startMsg.delete()
+    await callback.message.answer(text.userAway.format(userName=gd.userName), parse_mode="html")
+    await state.set_state("userAway")
+
 
 
 
