@@ -76,6 +76,16 @@ def buidUserWordLenKeyboad(wordLen: int):
 
     return builder.as_markup()        
 
+def buidUserGuessCharKeyboad(resolvedChars: list[str]):
+    builder = InlineKeyboardBuilder()
+    charKeys = []
+    for i in range(len(resolvedChars)):
+        charKeys.append(
+            types.InlineKeyboardButton(text=resolvedChars[i], callback_data=("char_" + str(i)))
+        )
+    builder.row(*charKeys)
+    return builder.as_markup()        
+
 async def updateUserWordLenMsg(gd: GameData):
     ud = gd.userData
     await ud.wordLenMsg.edit_text(text.userWord.format(userName=gd.userName), parse_mode="html", 
@@ -113,7 +123,15 @@ async def user_word_len_exact(callback: types.CallbackQuery, state: FSMContext):
 
     await ud.wordLenMsg.delete()
 
-    ud.charGuessMsg = await callback.message.answer(text.userCharGuess.format(wordLen=ud.wordLen), parse_mode="html")
+    ud.resolvedChars = ['?'] * ud.wordLen
+
+    ud.candidates = wordsByLen[ud.wordLen].copy()
+    print(f"candidates: {ud.candidates}")
+
+    ud.charGuessMsg = await callback.message.answer(
+                                text.userCharGuess.format(wordLen=ud.wordLen), 
+                                parse_mode="html", 
+                                reply_markup=buidUserGuessCharKeyboad(ud.resolvedChars))
 
     await state.set_state("userCharGuess")
 
