@@ -79,31 +79,31 @@ def buidUserWordLenKeyboad(wordLen: int):
 async def updateUserWordLenMsg(gd: GameData):
     ud = gd.userData
     await ud.wordLenMsg.edit_text(text.userWord.format(userName=gd.userName), parse_mode="html", 
-                                  reply_markup=buidUserWordLenKeyboad(ud.userWordLen))
+                                  reply_markup=buidUserWordLenKeyboad(ud.wordLen))
 
 
 @dp.callback_query(StateFilter("userStart"),  F.data == "user_word")
 async def user_word(callback: types.CallbackQuery, state: FSMContext):
     gd = (await state.get_data())["gameData"]
     ud = gd.userData
-    ud.userWordLen = startUserWordLen
+    ud.wordLen = startUserWordLen
     await ud.startMsg.delete()
     ud.wordLenMsg = await callback.message.answer(text.userWord.format(userName=gd.userName), parse_mode="html", 
-                                  reply_markup=buidUserWordLenKeyboad(ud.userWordLen))
+                                  reply_markup=buidUserWordLenKeyboad(ud.wordLen))
     await state.set_state("userWordLen")
 
 @dp.callback_query(StateFilter("userWordLen"),  F.data == "word_len_dec")
 async def user_word_len_dec(callback: types.CallbackQuery, state: FSMContext):
     gd = (await state.get_data())["gameData"]
     ud = gd.userData
-    ud.userWordLen -= 1
+    ud.wordLen -= 1
     await updateUserWordLenMsg(gd)
 
 @dp.callback_query(StateFilter("userWordLen"),  F.data == "word_len_inc")
 async def user_word_len_dec(callback: types.CallbackQuery, state: FSMContext):
     gd = (await state.get_data())["gameData"]
     ud = gd.userData
-    ud.userWordLen += 1
+    ud.wordLen += 1
     await updateUserWordLenMsg(gd)
 
 @dp.callback_query(StateFilter("userWordLen"),  F.data == "word_len_exact")
@@ -113,7 +113,7 @@ async def user_word_len_exact(callback: types.CallbackQuery, state: FSMContext):
 
     await ud.wordLenMsg.delete()
 
-    ud.charGuessMsg = await callback.message.answer(text.userCharGuess.format(wordLen=ud.userWordLen), parse_mode="html")
+    ud.charGuessMsg = await callback.message.answer(text.userCharGuess.format(wordLen=ud.wordLen), parse_mode="html")
 
     await state.set_state("userCharGuess")
 
