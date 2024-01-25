@@ -24,7 +24,9 @@ RussNounsFN = "russian_nouns.txt"
 
 allRussWords: npt.ArrayLike = None
 wordLenMax = 100
+wordLenMin = 2
 wordsByLen = npt.ArrayLike = None
+startUserWordLen = 6
 
 bot = Bot(token=config.bot_token.get_secret_value())
 dp = Dispatcher()
@@ -45,20 +47,81 @@ async def cmd_start(message: types.Message, state: FSMContext):
 
 @dp.callback_query(StateFilter("userStart"),  F.data == "user_away")
 async def user_away(callback: types.CallbackQuery, state: FSMContext):
-    print(f"data:{await state.get_data()}")
     gd = (await state.get_data())["gameData"]
     ud = gd.userData
-    print(f"away: gd({gd}) ud({ud})")
     await ud.startMsg.delete()
     await callback.message.answer(text.userAway.format(userName=gd.userName), parse_mode="html")
     await state.set_state("userAway")
 
+def buidUserWordLenKeyboad(wordLen: int):
+    global wordsByLen
+    builder = InlineKeyboardBuilder()
 
+    lenKeys = []
+    if wordLen > wordLenMin:
+        lenKeys.append(types.InlineKeyboardButton(text="меньше чем " + str(wordLen), callback_data=("word_len_dec")))
+                       
+    lenKeys.append(types.InlineKeyboardButton(text=str(wordLen) + " букв(ы)", callback_data=("word_len_exact")))
+
+    if wordLen < wordsByLen.size - 1:
+        lenKeys.append(types.InlineKeyboardButton(text="больше чем " + str(wordLen), callback_data=("word_len_inc")))
+    builder.row(*lenKeys)
+
+    charKeys = []
+    for i in range(wordLen):
+        charKeys.append(
+            types.InlineKeyboardButton(text="?", callback_data=("char_" + str(i)))
+        )
+    builder.row(*charKeys)
+
+    return builder.as_markup()        
+
+async def updateUserWordLenMsg(gd: GameData):
+    ud = gd.userData
+    await ud.wordLenMsg.edit_text(text.userWord.format(userName=gd.userName), parse_mode="html", 
+                                  reply_markup=buidUserWordLenKeyboad(ud.userWordLen))
+
+
+@dp.callback_query(StateFilter("userStart"),  F.data == "user_word")
+async def user_word(callback: types.CallbackQuery, state: FSMContext):
+    gd = (await state.get_data())["gameData"]
+    ud = gd.userData
+    ud.userWordLen = startUserWordLen
+    await ud.startMsg.delete()
+    ud.wordLenMsg = await callback.message.answer(text.userWord.format(userName=gd.userName), parse_mode="html", 
+                                  reply_markup=buidUserWordLenKeyboad(ud.userWordLen))
+    await state.set_state("userWordLen")
+
+@dp.callback_query(StateFilter("userWordLen"),  F.data == "word_len_dec")
+async def user_word_len_dec(callback: types.CallbackQuery, state: FSMContext):
+    gd = (await state.get_data())["gameData"]
+    ud = gd.userData
+    ud.userWordLen -= 1
+    await updateUserWordLenMsg(gd)
+
+@dp.callback_query(StateFilter("userWordLen"),  F.data == "word_len_inc")
+async def user_word_len_dec(callback: types.CallbackQuery, state: FSMContext):
+    gd = (await state.get_data())["gameData"]
+    ud = gd.userData
+    ud.userWordLen += 1
+    await updateUserWordLenMsg(gd)
+
+@dp.callback_query(StateFilter("userWordLen"),  F.data == "word_len_exact")
+async def user_word_len_exact(callback: types.CallbackQuery, state: FSMContext):
+    gd = (await state.get_data())["gameData"]
+    ud = gd.userData
+
+    await ud.wordLenMsg.delete()
+
+    ud.charGuessMsg = await callback.message.answer(text.userCharGuess.format(wordLen=ud.userWordLen), parse_mode="html")
+
+    await state.set_state("userCharGuess")
 
 
 # Start the bot
 async def main():
     global allRussWords
+    global wordsByLen
     print("Bot Gallows starting...")
     print("Russian words loading...")
     allLines: list[str]
@@ -74,6 +137,7 @@ async def main():
     allRussWords = np.empty(allLines.size, dtype=object)
     wordCount = 0
     actualLenMax = 0
+    actualLenMin = 100
     wordLens = np.zeros(wordLenMax + 1, dtype=int)
     for line in allLines:
         word = line[:-1].upper()
@@ -82,6 +146,7 @@ async def main():
         lw = len(word)
         wordLens[lw] +=1
         if actualLenMax < lw: actualLenMax = lw
+        if actualLenMin > lw: actualLenMin = lw
         wordCount += 1
         ### print(f"words: {allRussWords}")        
 
