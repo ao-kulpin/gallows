@@ -9,6 +9,7 @@ from typing import Optional
 
 from gameinfo import GameData
 import text
+import char
 
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.exceptions import TelegramBadRequest
@@ -127,9 +128,13 @@ async def user_word_len_exact(callback: types.CallbackQuery, state: FSMContext):
 
     ud.candidates = wordsByLen[ud.wordLen].copy()
     print(f"candidates: {ud.candidates}")
+    counter = char.CharCounter()
+    counter.coutWords(ud.candidates, ud.resolvedChars)
+
+    ud.guessedChar = counter.getMaxChar()
 
     ud.charGuessMsg = await callback.message.answer(
-                                text.userCharGuess.format(wordLen=ud.wordLen), 
+                                text.userCharGuess.format(wordLen=ud.wordLen, guessedChar=ud.guessedChar), 
                                 parse_mode="html", 
                                 reply_markup=buidUserGuessCharKeyboad(ud.resolvedChars))
 
