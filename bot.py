@@ -84,7 +84,7 @@ def buidUserWordLenKeyboad(wordLen: int):
 
     return builder.as_markup()        
 
-def buidUserGuessCharKeyboad(resolvedChars: list[str]):
+def buidUserGuessCharKeyboad(resolvedChars: list[str], guessedChar: str, firstTry: bool = True):
     builder = InlineKeyboardBuilder()
     charKeys = []
     for i in range(len(resolvedChars)):
@@ -92,7 +92,10 @@ def buidUserGuessCharKeyboad(resolvedChars: list[str]):
             types.InlineKeyboardButton(text=resolvedChars[i], callback_data=("char_" + str(i)))
         )
     builder.row(*charKeys)
-    return builder.as_markup()        
+    builder.row(types.InlineKeyboardButton(text=("Нет буквы " if firstTry else "Больше нет букв ") 
+                                                 + guessedChar + " в моем слове", 
+                                           callback_data="nochar"))
+    return builder.as_markup()
 
 async def updateUserWordLenMsg(gd: GameData):
     ud = gd.userData
@@ -127,16 +130,28 @@ async def user_word_len_exact(callback: types.CallbackQuery, state: FSMContext):
     counter.coutWords(ud.candidates, ud.resolvedChars)
 
     ud.guessedChar = counter.getMaxChar()
-#    ud.guessedChar = "Х"
+
+    ud.charPos = []
 
     ud.charGuessMsg = await (callback.message.answer(
                                 text.userCharGuess.format(wordLen=ud.wordLen, guessedChar=ud.guessedChar), 
-                                #text.userCharGuess.format(wordLen=ud.wordLen), 
                                 parse_mode="html",
-                                reply_markup=buidUserGuessCharKeyboad(ud.resolvedChars)))
+                                reply_markup=buidUserGuessCharKeyboad(ud.resolvedChars, 
+                                                                      guessedChar=ud.guessedChar, 
+                                                                      firstTry=True)))
 
     await ud.wordLenMsg.delete()
     await state.set_state("userCharGuess")
+
+@dp.callback_query(StateFilter("userCharGuess"),  F.data == "nochar")
+async def user_no_char(callback: types.CallbackQuery, state: FSMContext):
+    gd = (await state.get_data())["gameData"]
+    ud = gd.userData
+
+    await ud.charGuessMsg.edit_text(
+                "Нет буквы " + ud.guessedChar, 
+                parse_mode="html")
+
 
 
 # Start the bot
