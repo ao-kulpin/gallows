@@ -10,6 +10,7 @@ from typing import Optional
 from gameinfo import GameData
 import text
 import char
+import data
 
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.exceptions import TelegramBadRequest
@@ -22,12 +23,6 @@ from aiogram.fsm.context import FSMContext
 from config_reader import config
 
 RussNounsFN = "russian_nouns.txt"
-
-allRussWords: npt.ArrayLike = None
-wordLenMax = 100
-wordLenMin = 2
-wordsByLen = npt.ArrayLike = None
-startUserWordLen = 6
 
 bot = Bot(token=config.bot_token.get_secret_value())
 dp = Dispatcher()
@@ -50,7 +45,7 @@ async def cmd_start(message: types.Message, state: FSMContext):
 async def user_word(callback: types.CallbackQuery, state: FSMContext):
     gd = (await state.get_data())["gameData"]
     ud = gd.userData
-    ud.wordLen = startUserWordLen
+    ud.wordLen = data.startUserWordLen
     mstr = text.userWord.format(userName=gd.userName)
     print(mstr)
     ud.wordLenMsg = await (callback.message.answer(text=mstr, parse_mode="html", 
@@ -68,16 +63,15 @@ async def user_away(callback: types.CallbackQuery, state: FSMContext):
     await state.set_state("userAway")
 
 def buidUserWordLenKeyboad(wordLen: int):
-    global wordsByLen
     builder = InlineKeyboardBuilder()
 
     lenKeys = []
-    if wordLen > wordLenMin:
+    if wordLen > data.wordLenMin:
         lenKeys.append(types.InlineKeyboardButton(text="меньше чем " + str(wordLen), callback_data="word_len_dec"))
                        
     lenKeys.append(types.InlineKeyboardButton(text=str(wordLen) + " букв(ы)", callback_data="word_len_exact"))
 
-    if wordLen < wordsByLen.size - 1:
+    if wordLen < data.wordsByLen.size - 1:
         lenKeys.append(types.InlineKeyboardButton(text="больше чем " + str(wordLen), callback_data="word_len_inc"))
     builder.row(*lenKeys)
 
@@ -127,7 +121,7 @@ async def user_word_len_exact(callback: types.CallbackQuery, state: FSMContext):
 
     ud.resolvedChars = ['?'] * ud.wordLen
 
-    ud.candidates = wordsByLen[ud.wordLen].copy()
+    ud.candidates = data.wordsByLen[ud.wordLen].copy()
     print(f"candidates: {ud.candidates}")
     counter = char.CharCounter()
     counter.coutWords(ud.candidates, ud.resolvedChars)
@@ -147,8 +141,6 @@ async def user_word_len_exact(callback: types.CallbackQuery, state: FSMContext):
 
 # Start the bot
 async def main():
-    global allRussWords
-    global wordsByLen
     print("Bot Gallows starting...")
     print("Russian words loading...")
     allLines: list[str]
@@ -161,42 +153,42 @@ async def main():
         return
     
     print(f"File {RussNounsFN} is loaded")
-    allRussWords = np.empty(allLines.size, dtype=object)
+    data.allRussWords = np.empty(allLines.size, dtype=object)
     wordCount = 0
     actualLenMax = 0
     actualLenMin = 100
-    wordLens = np.zeros(wordLenMax + 1, dtype=int)
+    wordLens = np.zeros(data.wordLenMax + 1, dtype=int)
     for line in allLines:
         word = line[:-1].upper()
         ### print(f"word:{word}")
-        allRussWords[wordCount] = word
+        data.allRussWords[wordCount] = word
         lw = len(word)
         wordLens[lw] +=1
         if actualLenMax < lw: actualLenMax = lw
         if actualLenMin > lw: actualLenMin = lw
         wordCount += 1
-        ### print(f"words: {allRussWords}")        
+        ### print(f"words: {data.allRussWords}")        
 
-    wordsByLen = np.empty(actualLenMax + 1, dtype=object)
+    data.wordsByLen = np.empty(actualLenMax + 1, dtype=object)
     for wl in range(actualLenMax + 1):
-        wordsByLen[wl] = np.empty(wordLens[wl], dtype=int)
+        data.wordsByLen[wl] = np.empty(wordLens[wl], dtype=int)
 
     wordLenCounts = np.zeros(actualLenMax + 1, dtype=int) 
 
-    for wi in range(allRussWords.size):
-        wl: int = len(allRussWords[wi])
-        ### print(f"wi {wi}/{allRussWords[wi]}")
+    for wi in range(data.allRussWords.size):
+        wl: int = len(data.allRussWords[wi])
+        ### print(f"wi {wi}/{data.allRussWords[wi]}")
         wlc: int = wordLenCounts[wl]
-        wordsByLen[wl][wlc] = wi
+        data.wordsByLen[wl][wlc] = wi
         wordLenCounts[wl] += 1
 
-    ### for wli in range(wordsByLen.size):
-    ###    print(f"wli({wli}:{wordsByLen[wli].size})->{[allRussWords[i] for i in wordsByLen[wli]]}")
+    ### for wli in range(data.wordsByLen.size):
+    ###    print(f"wli({wli}:{data.wordsByLen[wli].size})->{[adata.llRussWords[i] for i in data.wordsByLen[wli]]}")
     
-    ### for i in range(wordLenMax):    
+    ### for i in range(data.wordLenMax):    
     ###  print(f"{i}: {wordLens[i]}")  
 
-    print(f"{str(allRussWords.size)} words are loaded")
+    print(f"{str(data.allRussWords.size)} words are loaded")
 
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot, handle_as_tasks=False)

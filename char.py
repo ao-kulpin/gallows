@@ -1,6 +1,6 @@
 import numpy as np
 import numpy.typing as npt
-from bot import allRussWords
+import data
 
 allChars = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ-"
 
@@ -16,21 +16,22 @@ class CharCounter:
         assert len(c) == 1
         count = self._counts[c] + 1
         self._counts[c] = count
+        #print(f"countChar({c})->{count}")
         if count > self._maxCount:
             self._maxCount = count
             self._maxChar = c
 
     def countWord(self, word: str, resolvedChars : list[str]) -> None:
+        #print(f"countWord({word} {resolvedChars})")
         assert len(word) == len(resolvedChars)
         for i in range(len(word)):
             if resolvedChars[i] == "?":
                 self.countChar(word[i])
 
     def coutWords(self, words: npt.ArrayLike, resolvedChars : list[str]) -> None:
-        global allRussWords
-        print(f"allRussWords:{type(allRussWords)}")
+        print(f"data.allRussWords:{type(data.allRussWords)}")
         for wi in words:
-            self.countWord(allRussWords[wi], resolvedChars)
+            self.countWord(data.allRussWords[wi], resolvedChars)
 
-    def getMaxChar(self): self._maxChar            
+    def getMaxChar(self): return self._maxChar            
 
