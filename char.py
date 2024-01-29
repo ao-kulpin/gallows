@@ -27,6 +27,7 @@ class CharCounter:
                 self.countChar(word[i])
 
     def coutWords(self, words: npt.ArrayLike, resolvedChars : list[str]) -> None:
+        global allRussWords
         print(f"allRussWords:{type(allRussWords)}")
         for wi in words:
             self.countWord(allRussWords[wi], resolvedChars)

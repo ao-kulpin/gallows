@@ -46,12 +46,25 @@ async def cmd_start(message: types.Message, state: FSMContext):
     ud.startMsg = await message.answer(text.userGreet.format(userName=gd.userName), parse_mode="html", reply_markup=builder.as_markup())
     await state.set_state("userStart")
 
+@dp.callback_query(StateFilter("userStart"),  F.data == "user_word")
+async def user_word(callback: types.CallbackQuery, state: FSMContext):
+    gd = (await state.get_data())["gameData"]
+    ud = gd.userData
+    ud.wordLen = startUserWordLen
+    mstr = text.userWord.format(userName=gd.userName)
+    print(mstr)
+    ud.wordLenMsg = await (callback.message.answer(text=mstr, parse_mode="html", 
+                                  reply_markup=buidUserWordLenKeyboad(ud.wordLen)))
+    await ud.startMsg.delete()
+    await state.set_state("userWordLen")
+
+
 @dp.callback_query(StateFilter("userStart"),  F.data == "user_away")
 async def user_away(callback: types.CallbackQuery, state: FSMContext):
     gd = (await state.get_data())["gameData"]
     ud = gd.userData
+    await (callback.message.answer(text.userAway.format(userName=gd.userName), parse_mode="html"))
     await ud.startMsg.delete()
-    await callback.message.answer(text.userAway.format(userName=gd.userName), parse_mode="html")
     await state.set_state("userAway")
 
 def buidUserWordLenKeyboad(wordLen: int):
@@ -60,12 +73,12 @@ def buidUserWordLenKeyboad(wordLen: int):
 
     lenKeys = []
     if wordLen > wordLenMin:
-        lenKeys.append(types.InlineKeyboardButton(text="меньше чем " + str(wordLen), callback_data=("word_len_dec")))
+        lenKeys.append(types.InlineKeyboardButton(text="меньше чем " + str(wordLen), callback_data="word_len_dec"))
                        
-    lenKeys.append(types.InlineKeyboardButton(text=str(wordLen) + " букв(ы)", callback_data=("word_len_exact")))
+    lenKeys.append(types.InlineKeyboardButton(text=str(wordLen) + " букв(ы)", callback_data="word_len_exact"))
 
     if wordLen < wordsByLen.size - 1:
-        lenKeys.append(types.InlineKeyboardButton(text="больше чем " + str(wordLen), callback_data=("word_len_inc")))
+        lenKeys.append(types.InlineKeyboardButton(text="больше чем " + str(wordLen), callback_data="word_len_inc"))
     builder.row(*lenKeys)
 
     charKeys = []
@@ -93,16 +106,6 @@ async def updateUserWordLenMsg(gd: GameData):
                                   reply_markup=buidUserWordLenKeyboad(ud.wordLen))
 
 
-@dp.callback_query(StateFilter("userStart"),  F.data == "user_word")
-async def user_word(callback: types.CallbackQuery, state: FSMContext):
-    gd = (await state.get_data())["gameData"]
-    ud = gd.userData
-    ud.wordLen = startUserWordLen
-    await ud.startMsg.delete()
-    ud.wordLenMsg = await callback.message.answer(text.userWord.format(userName=gd.userName), parse_mode="html", 
-                                  reply_markup=buidUserWordLenKeyboad(ud.wordLen))
-    await state.set_state("userWordLen")
-
 @dp.callback_query(StateFilter("userWordLen"),  F.data == "word_len_dec")
 async def user_word_len_dec(callback: types.CallbackQuery, state: FSMContext):
     gd = (await state.get_data())["gameData"]
@@ -122,8 +125,6 @@ async def user_word_len_exact(callback: types.CallbackQuery, state: FSMContext):
     gd = (await state.get_data())["gameData"]
     ud = gd.userData
 
-    await ud.wordLenMsg.delete()
-
     ud.resolvedChars = ['?'] * ud.wordLen
 
     ud.candidates = wordsByLen[ud.wordLen].copy()
@@ -132,12 +133,15 @@ async def user_word_len_exact(callback: types.CallbackQuery, state: FSMContext):
     counter.coutWords(ud.candidates, ud.resolvedChars)
 
     ud.guessedChar = counter.getMaxChar()
+#    ud.guessedChar = "Х"
 
-    ud.charGuessMsg = await callback.message.answer(
+    ud.charGuessMsg = await (callback.message.answer(
                                 text.userCharGuess.format(wordLen=ud.wordLen, guessedChar=ud.guessedChar), 
-                                parse_mode="html", 
-                                reply_markup=buidUserGuessCharKeyboad(ud.resolvedChars))
+                                #text.userCharGuess.format(wordLen=ud.wordLen), 
+                                parse_mode="html",
+                                reply_markup=buidUserGuessCharKeyboad(ud.resolvedChars)))
 
+    await ud.wordLenMsg.delete()
     await state.set_state("userCharGuess")
 
 
@@ -195,7 +199,7 @@ async def main():
     print(f"{str(allRussWords.size)} words are loaded")
 
     await bot.delete_webhook(drop_pending_updates=True)
-    await dp.start_polling(bot)
+    await dp.start_polling(bot, handle_as_tasks=False)
 
 
 if __name__ == "__main__":
