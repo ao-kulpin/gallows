@@ -11,6 +11,7 @@ from gameinfo import GameData
 import text
 import char
 import data
+import filter
 
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.exceptions import TelegramBadRequest
@@ -48,7 +49,7 @@ async def user_word(callback: types.CallbackQuery, state: FSMContext):
     ud.wordLen = data.startUserWordLen
     mstr = text.userWord.format(userName=gd.userName)
     print(mstr)
-    ud.wordLenMsg = await (callback.message.answer(text=mstr, parse_mode="html", 
+    ud.wordLenMsg = await (callback.message.answer(mstr, parse_mode="html", 
                                   reply_markup=buidUserWordLenKeyboad(ud.wordLen)))
     await ud.startMsg.delete()
     await state.set_state("userWordLen")
@@ -58,7 +59,7 @@ async def user_word(callback: types.CallbackQuery, state: FSMContext):
 async def user_away(callback: types.CallbackQuery, state: FSMContext):
     gd = (await state.get_data())["gameData"]
     ud = gd.userData
-    await (callback.message.answer(text.userAway.format(userName=gd.userName), parse_mode="html"))
+    await (callback.message.answer(text.userAway.format(userName=gd.userName), parse_mode="html", reply_markup=buidUserWordLenKeyboad(10)))
     await ud.startMsg.delete()
     await state.set_state("userAway")
 
@@ -122,16 +123,16 @@ async def user_word_len_exact(callback: types.CallbackQuery, state: FSMContext):
     gd = (await state.get_data())["gameData"]
     ud = gd.userData
 
-    ud.resolvedChars = ['?'] * ud.wordLen
+    ud.resolvedChars = ["?"] * ud.wordLen
 
     ud.candidates = data.wordsByLen[ud.wordLen].copy()
     print(f"candidates: {ud.candidates}")
     counter = char.CharCounter()
-    counter.coutWords(ud.candidates, ud.resolvedChars)
+    counter.countWords(ud.candidates, ud.resolvedChars)
 
     ud.guessedChar = counter.getMaxChar()
 
-    ud.charPos = []
+    ud.charCount = 0
 
     ud.charGuessMsg = await (callback.message.answer(
                                 text.userCharGuess.format(wordLen=ud.wordLen, guessedChar=ud.guessedChar), 
@@ -148,9 +149,64 @@ async def user_no_char(callback: types.CallbackQuery, state: FSMContext):
     gd = (await state.get_data())["gameData"]
     ud = gd.userData
 
+    if ud.charCount == 0:
+        ncf = filter.NoCharFilter(ud.guessedChar)
+        ud.candidates = ncf.applyToWords(ud.candidates)
+        failedChar = ud.guessedChar
+        counter = char.CharCounter()
+        counter.countWords(ud.candidates, ud.resolvedChars)
+
+        ud.guessedChar = counter.getMaxChar()
+
+        await ud.charGuessMsg.edit_text(
+                                text.userFailedGuess.format(
+                                    failedChar=failedChar, guessedChar=ud.guessedChar), 
+                                parse_mode="html",
+                                reply_markup=buidUserGuessCharKeyboad(ud.resolvedChars, 
+                                                                      guessedChar=ud.guessedChar, 
+                                                                      firstTry=True))
+    else:
+        cf = filter.CharFilter(ud.guessedChar, ud.resolvedChars)
+        print(f"****** ResolvedChrs1: {ud.resolvedChars} candidates {ud.candidates.size}")
+        print([data.allRussWords[i] for i in ud.candidates])
+        ud.candidates = cf.applyToWords(ud.candidates)
+        failedChar = ud.guessedChar
+        counter = char.CharCounter()
+        counter.countWords(ud.candidates, ud.resolvedChars)
+
+        ud.guessedChar = counter.getMaxChar()
+        print(f"****** ResolvedChrs2: {ud.resolvedChars} candidates {ud.candidates.size} char {ud.guessedChar}")
+        print([data.allRussWords[i] for i in ud.candidates])
+
+        ud.charCount = 0
+        await ud.charGuessMsg.edit_text(
+                                text.userCharGuess.format(wordLen=ud.wordLen, guessedChar=ud.guessedChar), 
+                                parse_mode="html",
+                                reply_markup=buidUserGuessCharKeyboad(ud.resolvedChars, 
+                                                                      guessedChar=ud.guessedChar, 
+                                                                      firstTry=(ud.charCount == 0)))
+
+@dp.callback_query(StateFilter("userCharGuess"), F.data.startswith("char_"))
+async def user_open_char(callback: types.CallbackQuery, state: FSMContext):
+    gd = (await state.get_data())["gameData"]
+    ud = gd.userData
+    charPos = int(callback.data.split("_")[1])
+
+    curChar = ud.resolvedChars[charPos]
+
+    if curChar == "?":
+        ud.resolvedChars[charPos] = ud.guessedChar
+        ud.charCount += 1
+    elif curChar == ud.guessedChar:        
+        ud.resolvedChars[charPos] = "?"
+        ud.charCount -= 1
+
     await ud.charGuessMsg.edit_text(
-                "Нет буквы " + ud.guessedChar, 
-                parse_mode="html")
+                                text.userCharGuess.format(wordLen=ud.wordLen, guessedChar=ud.guessedChar), 
+                                parse_mode="html",
+                                reply_markup=buidUserGuessCharKeyboad(ud.resolvedChars, 
+                                                                      guessedChar=ud.guessedChar, 
+                                                                      firstTry=(ud.charCount == 0)))
 
 
 

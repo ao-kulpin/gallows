@@ -24,5 +24,8 @@ userCharGuess = """
 Как насчет <b>буквы {guessedChar}</b>?
 """
 
-#####Как насчет <b>буквы {guessedChar}</b>?
+userFailedGuess = """
+Чёрт! Опять я лоханулся с буквой {failedChar}
+Тады давайте попробуем <b>букву {guessedChar}</b>
+"""
 
