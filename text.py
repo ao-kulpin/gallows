@@ -29,3 +29,14 @@ userFailedGuess = """
 Тады давайте попробуем <b>букву {guessedChar}</b>
 """
 
+userBotWin = """
+Дорогой(я) <i>{userName}</i>!
+Похоже я, наконец, разгадал Ваше слово:
+
+<b>{resolvedWord}</b>
+
+Сыграем еще?
+"""
+
+
+

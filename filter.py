@@ -28,9 +28,9 @@ class CharFilter(Filter):
         assert len(word) == len(self.resolvedChars)
         for i in self.loopRange:
             if (self.guessedChar == word[i]) != (self.guessedChar == self.resolvedChars[i]):
-                print(f"filter({word}, {self.guessedChar}, {self.resolvedChars}, {i})->false")
+                ###print(f"filter({word}, {self.guessedChar}, {self.resolvedChars}, {i})->false")
                 return False
-        print(f"filter({word}, {self.resolvedChars})->true")
+        ###print(f"filter({word}, {self.resolvedChars})->true")
         return True       
 
 class NoCharFilter(Filter):
