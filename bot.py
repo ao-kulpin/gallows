@@ -46,7 +46,7 @@ async def cmd_start(message: types.Message, state: FSMContext):
 
     await state.set_state("userStart")
 
-@dp.callback_query(StateFilter("userStart", "userBotWin"),  F.data.in_(["user_word", "replay"]))
+@dp.callback_query(StateFilter("userStart", "userBotWin", "userUnknownWord"),  F.data.in_(["user_word", "replay"]))
 async def user_word(callback: types.CallbackQuery, state: FSMContext):
     print(f"\n*************** userStart userBotWin state: {await state.get_state()} data: {callback.data}\n")
     gd = (await state.get_data())["gameData"]
@@ -58,11 +58,14 @@ async def user_word(callback: types.CallbackQuery, state: FSMContext):
     await state.set_state("userWordLen")
 
 
-@dp.callback_query(StateFilter("userStart", "userBotWin"),  F.data.in_(["user_away", "noreplay"]))
+@dp.callback_query(StateFilter("userStart", "userBotWin", "userUnknownWord"),  F.data.in_(["user_away", "noreplay"]))
 async def user_away(callback: types.CallbackQuery, state: FSMContext):
     gd = (await state.get_data())["gameData"]
     ud = gd.userData
-    await (callback.message.answer(text.userAway.format(userName=gd.userName), parse_mode="html"))
+
+    gd.setChatText(text.userAway.format(userName=gd.userName))
+    gd.setChatMarkup(None)
+    await gd.redrawAll(callback.message)
 
     await state.set_state("userAway")
 
@@ -162,7 +165,7 @@ async def toBotWinState(userMsg: Message, state: FSMContext) -> bool:
     if ud.resolvedChars.count("?") == 0:
         # all chars are resolved
         
-        gd.setChatText(text.userBotWin.format(userName=gd.userName, resolvedWord=("".join(ud.resolvedChars))))
+        gd.setChatText(text.userBotWin.format(userName=gd.userName, resolvedWord=(" ".join(ud.resolvedChars))))
         gd.setChatMarkup(buidUserReplayKeyboad())
         await gd.redrawAll(userMsg)
 
@@ -171,6 +174,26 @@ async def toBotWinState(userMsg: Message, state: FSMContext) -> bool:
         return True
     else:
         return False
+
+async def toUserUnknownWordState(userMsg: Message, state: FSMContext) -> bool:    
+    assert await state.get_state() == "userCharGuess"
+
+    gd = (await state.get_data())["gameData"]
+    ud = gd.userData
+
+    if len(ud.candidates) == 0:
+        # Unknown word is detacted
+        
+        gd.setChatText(text.userUnknownWord.format(userName=gd.userName, unknownWord=(" ".join(ud.resolvedChars))))
+        gd.setChatMarkup(buidUserReplayKeyboad())
+        await gd.redrawAll(userMsg)
+
+        await state.set_state("userUnknownWord")
+
+        return True
+    else:
+        return False
+
 
 @dp.callback_query(StateFilter("userCharGuess"),  F.data == "nochar")
 async def user_no_char(callback: types.CallbackQuery, state: FSMContext):
@@ -183,6 +206,9 @@ async def user_no_char(callback: types.CallbackQuery, state: FSMContext):
         failedChar = ud.guessedChar
         counter = char.CharCounter()
         counter.countWords(ud.candidates, ud.resolvedChars)
+
+        if await toUserUnknownWordState(callback.message, state):
+            return
 
         ud.guessedChar = counter.getMaxChar()
 
@@ -199,7 +225,10 @@ async def user_no_char(callback: types.CallbackQuery, state: FSMContext):
         ###print(f"****** ResolvedChrs1: {ud.resolvedChars} candidates {ud.candidates.size}")
         ###print([data.allRussWords[i] for i in ud.candidates])
         ud.candidates = cf.applyToWords(ud.candidates)
-        failedChar = ud.guessedChar
+
+        if await toUserUnknownWordState(callback.message, state):
+            return
+    
         counter = char.CharCounter()
         counter.countWords(ud.candidates, ud.resolvedChars)
 

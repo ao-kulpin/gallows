@@ -9,8 +9,8 @@ class GameData:
         self.chatGMsg = gm.GMessage()
         self.chatTMsg = None
 
-    def setChatText(self, text: str):                      self.chatGMsg.setText(text)
-    def setChatMarkup(self, markup: InlineKeyboardMarkup): self.chatGMsg.setMarkup(markup)
+    def setChatText(self, text: str = ""):                      self.chatGMsg.setText(text)
+    def setChatMarkup(self, markup: InlineKeyboardMarkup = None): self.chatGMsg.setMarkup(markup)
 
     async def redrawAll(self, userMsg: Message):
         if self.chatTMsg == None:
