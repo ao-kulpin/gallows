@@ -36,6 +36,8 @@ async def cmd_start(message: types.Message, state: FSMContext):
     ud = gd.userData
     await state.set_data({"gameData": gd})
     ###print(f"start: gd({gd}) ud({ud})")
+    gd.setHeadPhoto("splash.jpg")
+    gd.setHeadText("Картинка")
     builder = InlineKeyboardBuilder()
     builder.row(types.InlineKeyboardButton(text="Я задумал(а) слово", callback_data="user_word"))
     builder.row(types.InlineKeyboardButton(text="Пошел в ... c такими играми", callback_data="user_away"))
