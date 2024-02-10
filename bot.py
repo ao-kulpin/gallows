@@ -34,10 +34,11 @@ logging.basicConfig(level=logging.INFO)
 async def cmd_start(message: types.Message, state: FSMContext):
     gd = GameData(userName=message.from_user.first_name)
     ud = gd.userData
+    ud._picNum = 0 ##############################
     await state.set_data({"gameData": gd})
     ###print(f"start: gd({gd}) ud({ud})")
     gd.setHeadPhoto("splash.jpg")
-    gd.setHeadText("Картинка")
+    gd.setHeadText("Картинка " + str(ud._picNum)) #############
     builder = InlineKeyboardBuilder()
     builder.row(types.InlineKeyboardButton(text="Я задумал(а) слово", callback_data="user_word"))
     builder.row(types.InlineKeyboardButton(text="Пошел в ... c такими играми", callback_data="user_away"))
@@ -66,6 +67,10 @@ async def user_away(callback: types.CallbackQuery, state: FSMContext):
     ud = gd.userData
 
     gd.setChatText(text.userAway.format(userName=gd.userName))
+
+    ud._picNum += 1
+    gd.setHeadText("Картинка " + str(ud._picNum)) #############
+
     gd.setChatMarkup(None)
     await gd.redrawAll(callback.message)
 
@@ -116,6 +121,9 @@ def buidUserReplayKeyboad():
 
 async def chooseWordLen(userMsg: Message, gd: GameData):
     ud = gd.userData
+    ud._picNum += 1
+    gd.setHeadText("Картинка " + str(ud._picNum)) #############
+
     gd.setChatText(text.userWord.format(userName=gd.userName))
     gd.setChatMarkup(buidUserWordLenKeyboad(ud.wordLen))
     await gd.redrawAll(userMsg)
@@ -201,6 +209,9 @@ async def toUserUnknownWordState(userMsg: Message, state: FSMContext) -> bool:
 async def user_no_char(callback: types.CallbackQuery, state: FSMContext):
     gd = (await state.get_data())["gameData"]
     ud = gd.userData
+
+    ud._picNum += 1
+    gd.setHeadText("Картинка " + str(ud._picNum)) #############
 
     if ud.charCount == 0:
         ncf = filter.NoCharFilter(ud.guessedChar)
