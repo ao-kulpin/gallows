@@ -50,6 +50,10 @@ userUnknownWord = """
 Сыграем еще?
 """
 
+userGameState = """
+Ваше слово: <b><u>{resolvedChars}</u></b> ({wordLen} букв(ы))
+
+"""
 
 
 

@@ -38,7 +38,7 @@ async def cmd_start(message: types.Message, state: FSMContext):
     await state.set_data({"gameData": gd})
     ###print(f"start: gd({gd}) ud({ud})")
     gd.setHeadPhoto("splash.jpg")
-    gd.setHeadText("Картинка " + str(ud._picNum)) #############
+    #############gd.setHeadText("Картинка " + str(ud._picNum)) #############
     builder = InlineKeyboardBuilder()
     builder.row(types.InlineKeyboardButton(text="Я задумал(а) слово", callback_data="user_word"))
     builder.row(types.InlineKeyboardButton(text="Пошел в ... c такими играми", callback_data="user_away"))
@@ -69,7 +69,7 @@ async def user_away(callback: types.CallbackQuery, state: FSMContext):
     gd.setChatText(text.userAway.format(userName=gd.userName))
 
     ud._picNum += 1
-    gd.setHeadText("Картинка " + str(ud._picNum)) #############
+    ############gd.setHeadText("Картинка " + str(ud._picNum)) #############
 
     gd.setChatMarkup(None)
     await gd.redrawAll(callback.message)
@@ -122,7 +122,7 @@ def buidUserReplayKeyboad():
 async def chooseWordLen(userMsg: Message, gd: GameData):
     ud = gd.userData
     ud._picNum += 1
-    gd.setHeadText("Картинка " + str(ud._picNum)) #############
+    #############gd.setHeadText("Картинка " + str(ud._picNum)) #############
 
     gd.setChatText(text.userWord.format(userName=gd.userName))
     gd.setChatMarkup(buidUserWordLenKeyboad(ud.wordLen))
@@ -162,9 +162,16 @@ async def user_word_len_exact(callback: types.CallbackQuery, state: FSMContext):
     gd.setChatMarkup(buidUserGuessCharKeyboad(ud.resolvedChars, 
                                               guessedChar=ud.guessedChar, 
                                               firstTry=True))
+    await drawUserGameState(state)
     await gd.redrawAll(callback.message)
 
     await state.set_state("userCharGuess")
+
+async def drawUserGameState(state: FSMContext) -> None:
+    gd = (await state.get_data())["gameData"]
+    ud = gd.userData
+    gd.setHeadText(text.userGameState.format(resolvedChars=(" ".join(ud.resolvedChars)), wordLen=ud.wordLen))
+
 
 async def toBotWinState(userMsg: Message, state: FSMContext) -> bool:    
     assert await state.get_state() == "userCharGuess"
@@ -177,6 +184,8 @@ async def toBotWinState(userMsg: Message, state: FSMContext) -> bool:
         
         gd.setChatText(text.userBotWin.format(userName=gd.userName, resolvedWord=(" ".join(ud.resolvedChars))))
         gd.setChatMarkup(buidUserReplayKeyboad())
+       
+        await drawUserGameState(state)
         await gd.redrawAll(userMsg)
 
         await state.set_state("userBotWin")
@@ -196,6 +205,8 @@ async def toUserUnknownWordState(userMsg: Message, state: FSMContext) -> bool:
         
         gd.setChatText(text.userUnknownWord.format(userName=gd.userName, unknownWord=(" ".join(ud.resolvedChars))))
         gd.setChatMarkup(buidUserReplayKeyboad())
+
+        await drawUserGameState(state)
         await gd.redrawAll(userMsg)
 
         await state.set_state("userUnknownWord")
@@ -211,7 +222,7 @@ async def user_no_char(callback: types.CallbackQuery, state: FSMContext):
     ud = gd.userData
 
     ud._picNum += 1
-    gd.setHeadText("Картинка " + str(ud._picNum)) #############
+    ###########gd.setHeadText("Картинка " + str(ud._picNum)) #############
 
     if ud.charCount == 0:
         ncf = filter.NoCharFilter(ud.guessedChar)
@@ -229,6 +240,7 @@ async def user_no_char(callback: types.CallbackQuery, state: FSMContext):
         gd.setChatMarkup(buidUserGuessCharKeyboad(ud.resolvedChars, 
                                                   guessedChar=ud.guessedChar, 
                                                   firstTry=True))
+        await drawUserGameState(state)
         await gd.redrawAll(callback.message)
     else:
         if await toBotWinState(callback.message, state):
@@ -254,6 +266,7 @@ async def user_no_char(callback: types.CallbackQuery, state: FSMContext):
         gd.setChatText(text.userCharGuess.format(wordLen=ud.wordLen, guessedChar=ud.guessedChar))
         gd.setChatMarkup(buidUserGuessCharKeyboad(ud.resolvedChars, guessedChar=ud.guessedChar, 
                                                                     firstTry=(ud.charCount == 0)))
+        await drawUserGameState(state)
         await gd.redrawAll(callback.message)                                                                    
 
 @dp.callback_query(StateFilter("userCharGuess"), F.data.startswith("char_"))
@@ -274,6 +287,7 @@ async def user_open_char(callback: types.CallbackQuery, state: FSMContext):
     gd.setChatText(text.userCharGuess.format(wordLen=ud.wordLen, guessedChar=ud.guessedChar))
     gd.setChatMarkup(buidUserGuessCharKeyboad(ud.resolvedChars, guessedChar=ud.guessedChar, 
                                                                     firstTry=(ud.charCount == 0)))
+    await drawUserGameState(state)
     await gd.redrawAll(callback.message)                                                                    
 
 

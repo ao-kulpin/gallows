@@ -16,8 +16,8 @@ class GMessage:
         def getPhotoCount(self):                      return    self._photoCount         
 
         def setText(self, text: str):                      
+            self._changeCount += int(self._text != text)
             self._text = text
-            self._changeCount += 1
         def setMarkup(self, markup: InlineKeyboardMarkup): 
             self._markup = markup          
             self._changeCount += 1
