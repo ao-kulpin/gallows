@@ -49,7 +49,7 @@ async def cmd_start(message: types.Message, state: FSMContext):
 
     await state.set_state("userStart")
 
-@dp.callback_query(StateFilter("userStart", "userBotWin", "userUnknownWord"),  F.data.in_(["user_word", "replay"]))
+@dp.callback_query(StateFilter("userStart", "userBotWin", "userUnknownWord", "userWin"),  F.data.in_(["user_word", "replay"]))
 async def user_word(callback: types.CallbackQuery, state: FSMContext):
     print(f"\n*************** userStart userBotWin state: {await state.get_state()} data: {callback.data}\n")
     gd = (await state.get_data())["gameData"]
@@ -217,6 +217,29 @@ async def toBotWinState(userMsg: Message, state: FSMContext) -> bool:
     else:
         return False
 
+async def toUserWinState(userMsg: Message, state: FSMContext) -> bool:    
+    assert await state.get_state() == "userCharGuess"
+
+    gd = (await state.get_data())["gameData"]
+    ud = gd.userData
+
+    if len(ud.failedChars) >= data.failureNumber:
+        # too many failures - user has won
+        
+        gd.setChatText(text.userWin.format(userName=gd.userName, unknownWord=(" ".join(ud.resolvedChars))))
+        gd.setChatMarkup(buidUserReplayKeyboad())
+       
+        await drawUserGameState(state)
+        await gd.redrawAll(userMsg)
+
+        await state.set_state("userWin")
+
+        return True
+    else:
+        return False
+
+
+
 async def toUserUnknownWordState(userMsg: Message, state: FSMContext) -> bool:    
     assert await state.get_state() == "userCharGuess"
 
@@ -249,6 +272,9 @@ async def user_no_char(callback: types.CallbackQuery, state: FSMContext):
 
     if ud.charCount == 0:
         ud.failedChars.append(ud.guessedChar)
+
+        if await toUserWinState(callback.message, state):
+            return
 
         ncf = filter.NoCharFilter(ud.guessedChar)
         ud.candidates = ncf.applyToWords(ud.candidates)
