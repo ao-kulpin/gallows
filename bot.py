@@ -56,6 +56,9 @@ async def user_word(callback: types.CallbackQuery, state: FSMContext):
     ud = gd.userData
     ud.wordLen = data.startUserWordLen
 
+    ud.resolvedChars = None # Don't draw userGameState 
+    await drawUserGameState(state)
+
     await chooseWordLen(callback.message, gd)
 
     await state.set_state("userWordLen")
@@ -149,6 +152,8 @@ async def user_word_len_exact(callback: types.CallbackQuery, state: FSMContext):
     ud = gd.userData
 
     ud.resolvedChars = ["?"] * ud.wordLen
+    ud.successChars  = []
+    ud.failedChars   = []
 
     ud.candidates = data.wordsByLen[ud.wordLen].copy()
     counter = char.CharCounter()
@@ -170,7 +175,25 @@ async def user_word_len_exact(callback: types.CallbackQuery, state: FSMContext):
 async def drawUserGameState(state: FSMContext) -> None:
     gd = (await state.get_data())["gameData"]
     ud = gd.userData
-    gd.setHeadText(text.userGameState.format(resolvedChars=(" ".join(ud.resolvedChars)), wordLen=ud.wordLen))
+    if ud.resolvedChars == None:
+        # current game state is empty
+        gd.setHeadText("")
+    else:
+        successCount=len(ud.resolvedChars) - ud.resolvedChars.count("?")
+        successCharsStr = ""
+
+        for sc in ud.successChars:
+            if successCharsStr != "":
+                successCharsStr += ", "
+            successCharsStr += sc
+            scCount = ud.resolvedChars.count(sc)    
+            assert scCount >= 1
+            if scCount > 1:
+                successCharsStr += f"({scCount})"
+
+        gd.setHeadText(text.userGameState.format(resolvedChars=(" ".join(ud.resolvedChars)), wordLen=ud.wordLen,
+                   failedCount=len(ud.failedChars), failedChars=", ".join(ud.failedChars),
+                   successCount=successCount, successChars=successCharsStr, failureRemain=(data.failureNumber-len(ud.failedChars))))
 
 
 async def toBotWinState(userMsg: Message, state: FSMContext) -> bool:    
@@ -225,6 +248,8 @@ async def user_no_char(callback: types.CallbackQuery, state: FSMContext):
     ###########gd.setHeadText("Картинка " + str(ud._picNum)) #############
 
     if ud.charCount == 0:
+        ud.failedChars.append(ud.guessedChar)
+
         ncf = filter.NoCharFilter(ud.guessedChar)
         ud.candidates = ncf.applyToWords(ud.candidates)
         failedChar = ud.guessedChar
@@ -283,6 +308,15 @@ async def user_open_char(callback: types.CallbackQuery, state: FSMContext):
     elif curChar == ud.guessedChar:        
         ud.resolvedChars[charPos] = "?"
         ud.charCount -= 1
+
+    match ud.charCount:
+        case 0:
+            ud.successChars.pop()
+            print(f"\n**************** successChars 0 {ud.successChars}")                
+        case 1:
+            if curChar == '?':
+                ud.successChars.append(ud.guessedChar)
+            print(f"\n**************** successChars 1 {ud.successChars}")                
 
     gd.setChatText(text.userCharGuess.format(wordLen=ud.wordLen, guessedChar=ud.guessedChar))
     gd.setChatMarkup(buidUserGuessCharKeyboad(ud.resolvedChars, guessedChar=ud.guessedChar, 

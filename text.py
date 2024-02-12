@@ -51,7 +51,11 @@ userUnknownWord = """
 """
 
 userGameState = """
-Ваше слово: <b><u>{resolvedChars}</u></b> ({wordLen} букв(ы))
+Ваше слово: <b><u>{resolvedChars}</u></b> ({wordLen} букв/ы)
+Мои ошибки ({failedCount}): {failedChars}
+Мои удачи ({successCount}): {successChars}
+До Вашей победы еще: <b>{failureRemain} ошибки</b>(ок)
+
 
 """
 
