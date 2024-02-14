@@ -24,7 +24,7 @@ from aiogram.fsm.context import FSMContext
 
 from config_reader import config
 
-RussNounsFN = "russian_nouns.txt"
+RussNounsFN = "russian_nouns_without_filter.txt"  #####"russian_nouns.txt"
 
 bot = Bot(token=config.bot_token.get_secret_value())
 dp = Dispatcher()
@@ -163,7 +163,8 @@ async def user_word_len_exact(callback: types.CallbackQuery, state: FSMContext):
 
     ud.charCount = 0
     
-    gd.setChatText(text.userCharGuess.format(wordLen=ud.wordLen, guessedChar=ud.guessedChar))
+    keyboardHelp: str = text.userKeyboardHelp.format(guessedChar=ud.guessedChar) 
+    gd.setChatText(text.userGuessStart.format(wordLen=ud.wordLen, guessedChar=ud.guessedChar, keyboardHelp=keyboardHelp))
     gd.setChatMarkup(buidUserGuessCharKeyboad(ud.resolvedChars, 
                                               guessedChar=ud.guessedChar, 
                                               firstTry=True))
@@ -267,6 +268,7 @@ async def user_no_char(callback: types.CallbackQuery, state: FSMContext):
     gd = (await state.get_data())["gameData"]
     ud = gd.userData
 
+    prevChar = ud.guessedChar
     ud._picNum += 1
     ###########gd.setHeadText("Картинка " + str(ud._picNum)) #############
 
@@ -278,7 +280,6 @@ async def user_no_char(callback: types.CallbackQuery, state: FSMContext):
 
         ncf = filter.NoCharFilter(ud.guessedChar)
         ud.candidates = ncf.applyToWords(ud.candidates)
-        failedChar = ud.guessedChar
         counter = char.CharCounter()
         counter.countWords(ud.candidates, ud.resolvedChars)
 
@@ -287,7 +288,8 @@ async def user_no_char(callback: types.CallbackQuery, state: FSMContext):
 
         ud.guessedChar = counter.getMaxChar()
 
-        gd.setChatText(text.userFailedGuess.format(failedChar=failedChar, guessedChar=ud.guessedChar))
+        keyboardHelp: str = text.userKeyboardHelp.format(guessedChar=ud.guessedChar) 
+        gd.setChatText(text.userGuessFail.format(prevChar=prevChar, guessedChar=ud.guessedChar, keyboardHelp=keyboardHelp))
         gd.setChatMarkup(buidUserGuessCharKeyboad(ud.resolvedChars, 
                                                   guessedChar=ud.guessedChar, 
                                                   firstTry=True))
@@ -314,7 +316,8 @@ async def user_no_char(callback: types.CallbackQuery, state: FSMContext):
 
         ud.charCount = 0
         
-        gd.setChatText(text.userCharGuess.format(wordLen=ud.wordLen, guessedChar=ud.guessedChar))
+        keyboardHelp: str = text.userKeyboardHelp.format(guessedChar=ud.guessedChar) 
+        gd.setChatText(text.userGuessSuccess.format(prevChar=prevChar, guessedChar=ud.guessedChar, keyboardHelp=keyboardHelp))
         gd.setChatMarkup(buidUserGuessCharKeyboad(ud.resolvedChars, guessedChar=ud.guessedChar, 
                                                                     firstTry=(ud.charCount == 0)))
         await drawUserGameState(state)
@@ -344,7 +347,6 @@ async def user_open_char(callback: types.CallbackQuery, state: FSMContext):
                 ud.successChars.append(ud.guessedChar)
             print(f"\n**************** successChars 1 {ud.successChars}")                
 
-    gd.setChatText(text.userCharGuess.format(wordLen=ud.wordLen, guessedChar=ud.guessedChar))
     gd.setChatMarkup(buidUserGuessCharKeyboad(ud.resolvedChars, guessedChar=ud.guessedChar, 
                                                                     firstTry=(ud.charCount == 0)))
     await drawUserGameState(state)
