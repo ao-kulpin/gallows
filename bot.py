@@ -206,7 +206,8 @@ async def toBotWinState(userMsg: Message, state: FSMContext) -> bool:
     if ud.resolvedChars.count("?") == 0:
         # all chars are resolved
         
-        gd.setChatText(text.userBotWin.format(userName=gd.userName, resolvedWord=(" ".join(ud.resolvedChars))))
+        gd.setChatText(text.userBotWin.format(userName=gd.userName, resolvedWord=(" ".join(ud.resolvedChars)), 
+                                              failureRemain=(data.failureNumber-len(ud.failedChars))))
         gd.setChatMarkup(buidUserReplayKeyboad())
        
         await drawUserGameState(state)
@@ -227,7 +228,8 @@ async def toUserWinState(userMsg: Message, state: FSMContext) -> bool:
     if len(ud.failedChars) >= data.failureNumber:
         # too many failures - user has won
         
-        gd.setChatText(text.userWin.format(userName=gd.userName, unknownWord=(" ".join(ud.resolvedChars))))
+        gd.setChatText(text.userWin.format(userName=gd.userName, unknownWord=(" ".join(ud.resolvedChars)), 
+                                           failureNumber=(data.failureNumber-1)))
         gd.setChatMarkup(buidUserReplayKeyboad())
        
         await drawUserGameState(state)
