@@ -343,11 +343,9 @@ async def user_open_char(callback: types.CallbackQuery, state: FSMContext):
     match ud.charCount:
         case 0:
             ud.successChars.pop()
-            print(f"\n**************** successChars 0 {ud.successChars}")                
         case 1:
             if curChar == '?':
                 ud.successChars.append(ud.guessedChar)
-            print(f"\n**************** successChars 1 {ud.successChars}")                
 
     gd.setChatMarkup(buidUserGuessCharKeyboad(ud.resolvedChars, guessedChar=ud.guessedChar, 
                                                                     firstTry=(ud.charCount == 0)))
