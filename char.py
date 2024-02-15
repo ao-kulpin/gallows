@@ -17,7 +17,9 @@ class CharCounter:
         count = self._counts[c] + 1
         self._counts[c] = count
         #print(f"countChar({c})->{count}")
-        if count > self._maxCount:
+        if count > self._maxCount \
+            or count == self._maxCount and np.random.random_sample() > 0.5:
+                                        # randomization of _maxChar          
             self._maxCount = count
             self._maxChar = c
 
