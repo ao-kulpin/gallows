@@ -5,10 +5,19 @@ userGreet = """
 Задумайте пож-та свое слово:
 """
 
+logUserStart = """
+{firstName} {lastName} вошел в бот
+"""
+
+
 userAway = """
 
 Мне очень жаль, <i>{userName}</i>, что сегодня у Вас нет настроения побольше пообщаться со мной
 Но я навсегда запомнил нашу Прекрасную Игру и нетерпением жду Новых Встреч с Вами!
+"""
+
+logUserAway = """
+{userName} вышел из бота
 """
 
 userWord = """
@@ -23,6 +32,9 @@ userGuessStart = """
 Отличный выбор! Попробую поугадывать...
 Как насчет <b>буквы <i>{guessedChar}</i></b>?
 {keyboardHelp}
+"""
+logUserGuessStart = """
+{userName} задумал слов из {wordLen} букв
 """
 
 userGuessFail = """
@@ -58,6 +70,10 @@ userBotWin = """
 Сыграем еще?
 """
 
+logUserBotWin = """
+Бот разгадал слово {resolvedWord} (от {userName})
+"""
+
 userWin = """
 Дорогой(я) <i>{userName}</i>!
 Разгадывая Ваше заковыристое слово:
@@ -72,6 +88,9 @@ userWin = """
 Сыграем еще?
 """
 
+logUserWin = """
+{userName} выиграл со словом {unknownWord}
+"""
 
 userUnknownWord = """
 Дорогой(я) <i>{userName}</i>!
@@ -83,6 +102,10 @@ userUnknownWord = """
 Поздравляю Вас с чистой Победой!
 
 Сыграем еще?
+"""
+
+logUserUnknownWord = """
+{userName} задал НЕИЗВЕСТНОЕ слово {unknownWord}
 """
 
 userGameState = """

@@ -65,7 +65,6 @@ class MessageHandle:
                 self.changeCount = self.gMsg.getChangeCount()
 
         if self.tMsg and self.gMsg.getPhoto() and self.changeCount != self.gMsg.getChangeCount():
-            print(f"\n******** changeCount self {self.changeCount} msg {self.gMsg.getChangeCount()}")
             # caption of the photo is changed
             await self.tMsg.edit_caption(caption=self.gMsg.getText(), parse_mode="HTML")
             self.changeCount = self.gMsg.getChangeCount()

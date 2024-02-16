@@ -13,6 +13,7 @@ import char
 import data
 import filter
 import gmessage as gm
+import logger
 
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.exceptions import TelegramBadRequest
@@ -47,6 +48,8 @@ async def cmd_start(message: types.Message, state: FSMContext):
     gd.setChatMarkup(builder.as_markup())
     await gd.redrawAll(message)
 
+    logger.put(text.logUserStart.format(firstName=message.from_user.first_name, lastName=message.from_user.last_name))
+
     await state.set_state("userStart")
 
 @dp.callback_query(StateFilter("userStart", "userBotWin", "userUnknownWord", "userWin"),  F.data.in_(["user_word", "replay"]))
@@ -64,7 +67,7 @@ async def user_word(callback: types.CallbackQuery, state: FSMContext):
     await state.set_state("userWordLen")
 
 
-@dp.callback_query(StateFilter("userStart", "userBotWin", "userUnknownWord"),  F.data.in_(["user_away", "noreplay"]))
+@dp.callback_query(StateFilter("userStart", "userBotWin", "userUnknownWord", "userWin"),  F.data.in_(["user_away", "noreplay"]))
 async def user_away(callback: types.CallbackQuery, state: FSMContext):
     gd = (await state.get_data())["gameData"]
     ud = gd.userData
@@ -76,6 +79,8 @@ async def user_away(callback: types.CallbackQuery, state: FSMContext):
 
     gd.setChatMarkup(None)
     await gd.redrawAll(callback.message)
+
+    logger.put(text.logUserAway.format(userName=gd.userName))
 
     await state.set_state("userAway")
 
@@ -171,6 +176,8 @@ async def user_word_len_exact(callback: types.CallbackQuery, state: FSMContext):
     await drawUserGameState(state)
     await gd.redrawAll(callback.message)
 
+    logger.put(text.logUserGuessStart.format(wordLen=ud.wordLen, userName=gd.userName))
+
     await state.set_state("userCharGuess")
 
 async def drawUserGameState(state: FSMContext) -> None:
@@ -213,6 +220,8 @@ async def toBotWinState(userMsg: Message, state: FSMContext) -> bool:
         await drawUserGameState(state)
         await gd.redrawAll(userMsg)
 
+        logger.put(text.logUserBotWin.format(userName=gd.userName, resolvedWord=("".join(ud.resolvedChars))))
+
         await state.set_state("userBotWin")
 
         return True
@@ -237,6 +246,8 @@ async def toUserWinState(userMsg: Message, state: FSMContext) -> bool:
 
         await state.set_state("userWin")
 
+        logger.put(text.logUserWin.format(userName=gd.userName, unknownWord=("".join(ud.resolvedChars))))
+
         return True
     else:
         return False
@@ -258,8 +269,9 @@ async def toUserUnknownWordState(userMsg: Message, state: FSMContext) -> bool:
         await drawUserGameState(state)
         await gd.redrawAll(userMsg)
 
-        await state.set_state("userUnknownWord")
+        logger.put(text.logUserUnknownWord.format(userName=gd.userName, unknownWord=("".join(ud.resolvedChars))))
 
+        await state.set_state("userUnknownWord")
         return True
     else:
         return False
