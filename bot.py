@@ -335,7 +335,13 @@ async def user_no_char(callback: types.CallbackQuery, state: FSMContext):
         gd.setChatMarkup(buidUserGuessCharKeyboad(ud.resolvedChars, guessedChar=ud.guessedChar, 
                                                                     firstTry=(ud.charCount == 0)))
         await drawUserGameState(state)
-        await gd.redrawAll(callback.message)                                                                    
+        await gd.redrawAll(callback.message) 
+
+    print(f"\n***** Candidates ({len(ud.candidates)}):")
+    if len(ud.candidates) > 100:
+        print("too many")
+    else:        
+        print([data.allRussWords[i] for i in ud.candidates])                                                                       
 
 @dp.callback_query(StateFilter("userCharGuess"), F.data.startswith("char_"))
 async def user_open_char(callback: types.CallbackQuery, state: FSMContext):
