@@ -54,7 +54,6 @@ async def cmd_start(message: types.Message, state: FSMContext):
 
 @dp.callback_query(StateFilter("userStart", "userBotWin", "userUnknownWord", "userWin"),  F.data.in_(["user_word", "replay"]))
 async def user_word(callback: types.CallbackQuery, state: FSMContext):
-    print(f"\n*************** userStart userBotWin state: {await state.get_state()} data: {callback.data}\n")
     gd = (await state.get_data())["gameData"]
     ud = gd.userData
     ud.wordLen = data.startUserWordLen
