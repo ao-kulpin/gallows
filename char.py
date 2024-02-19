@@ -28,7 +28,9 @@ class CharCounter:
         assert len(word) == len(resolvedChars)
         for i in range(len(word)):
             if resolvedChars[i] == "?":
-                self.countChar(word[i])
+                ch: str = word[i]
+                if word.find(ch) == i: # ignore duplicates 
+                    self.countChar(ch) 
 
     def countWords(self, words: npt.ArrayLike, resolvedChars : list[str]) -> None:
         print(f"data.allRussWords:{type(data.allRussWords)}")
