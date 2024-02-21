@@ -291,7 +291,7 @@ async def user_no_char(callback: types.CallbackQuery, state: FSMContext):
         if await toUserWinState(callback.message, state):
             return
 
-        ncf = filter.NoCharFilter(ud.guessedChar)
+        ncf = filter.AbsentFilter(ud.guessedChar)
         ud.candidates = ncf.applyToWords(ud.candidates)
         counter = char.CharCounter()
         counter.countWords(ud.candidates, ud.resolvedChars)
@@ -312,7 +312,7 @@ async def user_no_char(callback: types.CallbackQuery, state: FSMContext):
         if await toBotWinState(callback.message, state):
             return
         
-        cf = filter.CharFilter(ud.guessedChar, ud.resolvedChars)
+        cf = filter.ExistFilter(ud.guessedChar, ud.resolvedChars)
         ###print(f"****** ResolvedChrs1: {ud.resolvedChars} candidates {ud.candidates.size}")
         ###print([data.allRussWords[i] for i in ud.candidates])
         ud.candidates = cf.applyToWords(ud.candidates)

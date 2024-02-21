@@ -17,27 +17,27 @@ class Filter:
         res.resize(resCount)
         return res                
 
-class CharFilter(Filter):
-    def __init__(self, guessedChar: str, resolvedChars: list[str]):
-        assert len(guessedChar) == 1
-        self.guessedChar = guessedChar 
+class ExistFilter(Filter):
+    def __init__(self, existChar: str, resolvedChars: list[str]):
+        assert len(existChar) == 1
+        self.existChar = existChar 
         self.resolvedChars = resolvedChars
         self.loopRange = range(len(resolvedChars))
 
     def applyToWord(self, word: str) -> bool:
         assert len(word) == len(self.resolvedChars)
         for i in self.loopRange:
-            if (self.guessedChar == word[i]) != (self.guessedChar == self.resolvedChars[i]):
-                ###print(f"filter({word}, {self.guessedChar}, {self.resolvedChars}, {i})->false")
+            if (self.existChar == word[i]) != (self.existChar == self.resolvedChars[i]):
+                ###print(f"filter({word}, {self.existChar}, {self.resolvedChars}, {i})->false")
                 return False
         ###print(f"filter({word}, {self.resolvedChars})->true")
         return True       
 
-class NoCharFilter(Filter):
-    def __init__(self, guessedChar: str):
-        assert len(guessedChar) == 1
-        self.guessedChar = guessedChar 
+class AbsentFilter(Filter):
+    def __init__(self, absentChar: str):
+        assert len(absentChar) == 1
+        self.absentChar = absentChar 
 
     def applyToWord(self, word: str) -> bool:
-        return -1 == word.find(self.guessedChar)
+        return -1 == word.find(self.absentChar)
     

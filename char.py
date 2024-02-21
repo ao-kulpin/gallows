@@ -33,7 +33,6 @@ class CharCounter:
                     self.countChar(ch) 
 
     def countWords(self, words: npt.ArrayLike, resolvedChars : list[str]) -> None:
-        print(f"data.allRussWords:{type(data.allRussWords)}")
         for wi in words:
             self.countWord(data.allRussWords[wi], resolvedChars)
 
