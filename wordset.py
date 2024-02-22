@@ -24,7 +24,7 @@ class WordSet:
         assert filterObj != None
         self._words = filterObj.applyToWords(self._words)
 
-        def countMaxChar(self, resolvedChars: list[str]) -> str:
-            counter = char.CharCounter()
-            counter.countWords(self._words, resolvedChars)
-            return counter.getMaxChar()
+    def countMaxChar(self, resolvedChars: list[str]) -> str:
+        counter = char.CharCounter()
+        counter.countWords(self._words, resolvedChars)
+        return counter.getMaxChar()

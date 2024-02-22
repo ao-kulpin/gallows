@@ -8,6 +8,7 @@ from random import randint
 from typing import Optional
 
 from gameinfo import GameData
+from wordset import WordSet
 import text
 import char
 import data
@@ -159,11 +160,9 @@ async def user_word_len_exact(callback: types.CallbackQuery, state: FSMContext):
     ud.successChars  = []
     ud.failedChars   = []
 
-    ud.candidates = data.wordsByLen[ud.wordLen].copy()
-    counter = char.CharCounter()
-    counter.countWords(ud.candidates, ud.resolvedChars)
+    ud.candidates = WordSet(ud.wordLen)
 
-    ud.guessedChar = counter.getMaxChar()
+    ud.guessedChar = ud.candidates.countMaxChar(ud.resolvedChars)
 
     ud.charCount = 0
     
@@ -259,8 +258,8 @@ async def toUserUnknownWordState(userMsg: Message, state: FSMContext) -> bool:
     gd = (await state.get_data())["gameData"]
     ud = gd.userData
 
-    if len(ud.candidates) == 0:
-        # Unknown word is detacted
+    if ud.candidates.getSize() == 0:
+        # Unknown word is detected
         
         gd.setChatText(text.userUnknownWord.format(userName=gd.userName, unknownWord=(" ".join(ud.resolvedChars))))
         gd.setChatMarkup(buidUserReplayKeyboad())
@@ -283,7 +282,6 @@ async def user_no_char(callback: types.CallbackQuery, state: FSMContext):
 
     prevChar = ud.guessedChar
     ud._picNum += 1
-    ###########gd.setHeadText("Картинка " + str(ud._picNum)) #############
 
     if ud.charCount == 0:
         ud.failedChars.append(ud.guessedChar)
@@ -291,15 +289,12 @@ async def user_no_char(callback: types.CallbackQuery, state: FSMContext):
         if await toUserWinState(callback.message, state):
             return
 
-        ncf = filter.AbsentFilter(ud.guessedChar)
-        ud.candidates = ncf.applyToWords(ud.candidates)
-        counter = char.CharCounter()
-        counter.countWords(ud.candidates, ud.resolvedChars)
+        ud.candidates.filter(absentChar=ud.guessedChar)
 
         if await toUserUnknownWordState(callback.message, state):
             return
 
-        ud.guessedChar = counter.getMaxChar()
+        ud.guessedChar = ud.candidates.countMaxChar(ud.resolvedChars)
 
         keyboardHelp: str = text.userKeyboardHelp.format(guessedChar=ud.guessedChar) 
         gd.setChatText(text.userGuessFail.format(prevChar=prevChar, guessedChar=ud.guessedChar, keyboardHelp=keyboardHelp))
@@ -312,20 +307,12 @@ async def user_no_char(callback: types.CallbackQuery, state: FSMContext):
         if await toBotWinState(callback.message, state):
             return
         
-        cf = filter.ExistFilter(ud.guessedChar, ud.resolvedChars)
-        ###print(f"****** ResolvedChrs1: {ud.resolvedChars} candidates {ud.candidates.size}")
-        ###print([data.allRussWords[i] for i in ud.candidates])
-        ud.candidates = cf.applyToWords(ud.candidates)
+        ud.candidates.filter(existChar=ud.guessedChar, resolvedChars=ud.resolvedChars)
 
         if await toUserUnknownWordState(callback.message, state):
             return
     
-        counter = char.CharCounter()
-        counter.countWords(ud.candidates, ud.resolvedChars)
-
-        ud.guessedChar = counter.getMaxChar()
-        ###print(f"****** ResolvedChrs2: {ud.resolvedChars} candidates {ud.candidates.size} char {ud.guessedChar}")
-        ###print([data.allRussWords[i] for i in ud.candidates])
+        ud.guessedChar = ud.candidates.countMaxChar(ud.resolvedChars)
 
         ud.charCount = 0
         
@@ -336,11 +323,11 @@ async def user_no_char(callback: types.CallbackQuery, state: FSMContext):
         await drawUserGameState(state)
         await gd.redrawAll(callback.message) 
 
-    print(f"\n***** Candidates ({len(ud.candidates)}):")
-    if len(ud.candidates) > 100:
+    print(f"\n***** Candidates ({ud.candidates.getSize()}):")
+    if ud.candidates.getSize() > 150:
         print("too many")
     else:        
-        print([data.allRussWords[i] for i in ud.candidates])                                                                       
+        print(ud.candidates.getWords())                                                                       
 
 @dp.callback_query(StateFilter("userCharGuess"), F.data.startswith("char_"))
 async def user_open_char(callback: types.CallbackQuery, state: FSMContext):
