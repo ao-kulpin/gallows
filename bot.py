@@ -15,6 +15,7 @@ import data
 import filter
 import gmessage as gm
 import logger
+import useractor
 
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.exceptions import TelegramBadRequest
@@ -30,6 +31,7 @@ RussNounsFN = "russian_nouns_without_filter.txt"  #####"russian_nouns.txt"
 
 bot = Bot(token=config.bot_token.get_secret_value())
 dp = Dispatcher()
+dp.include_router(useractor.router)
 logging.basicConfig(level=logging.INFO)
 
 @dp.message(Command("start"))
@@ -52,20 +54,6 @@ async def cmd_start(message: types.Message, state: FSMContext):
     logger.put(text.logUserStart.format(firstName=message.from_user.first_name, lastName=message.from_user.last_name))
 
     await state.set_state("userStart")
-
-@dp.callback_query(StateFilter("userStart", "userBotWin", "userUnknownWord", "userWin"),  F.data.in_(["user_word", "replay"]))
-async def user_word(callback: types.CallbackQuery, state: FSMContext):
-    gd = (await state.get_data())["gameData"]
-    ud = gd.userData
-    ud.wordLen = data.startUserWordLen
-
-    ud.resolvedChars = None # Don't draw userGameState 
-    await drawUserGameState(state)
-
-    await chooseWordLen(callback.message, gd)
-
-    await state.set_state("userWordLen")
-
 
 @dp.callback_query(StateFilter("userStart", "userBotWin", "userUnknownWord", "userWin"),  F.data.in_(["user_away", "noreplay"]))
 async def user_away(callback: types.CallbackQuery, state: FSMContext):
