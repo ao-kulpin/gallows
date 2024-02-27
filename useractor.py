@@ -65,9 +65,12 @@ async def drawUserGameState(state: FSMContext) -> None:
             if scCount > 1:
                 successCharsStr += f"({scCount})"
 
+        failureRemain = data.failureNumber-len(ud.failedChars)
+
         gd.setHeadText(text.userGameState.format(resolvedChars=(" ".join(ud.resolvedChars)), wordLen=ud.wordLen,
                    failedCount=len(ud.failedChars), failedChars=", ".join(ud.failedChars),
-                   successCount=successCount, successChars=successCharsStr, failureRemain=(data.failureNumber-len(ud.failedChars))))
+                   successCount=successCount, successChars=successCharsStr, failureRemain=failureRemain))
+        gd.setHeadPhoto(data.failurePhotos[failureRemain])                   
 
 def buildUserWordLenKeyboad(wordLen: int):
     builder = InlineKeyboardBuilder()
@@ -165,6 +168,7 @@ async def toUserUnknownWordState(userMsg: Message, state: FSMContext) -> bool:
         gd.setChatMarkup(buidUserReplayKeyboad())
 
         await drawUserGameState(state)
+        gd.setHeadPhoto(data.failurePhotos[0])
         await gd.redrawAll(userMsg)
 
         logger.put(text.logUserUnknownWord.format(userName=gd.userName, unknownWord=("".join(ud.resolvedChars))))
@@ -196,6 +200,8 @@ async def user_word(callback: types.CallbackQuery, state: FSMContext):
 
     ud.resolvedChars = None # Don't draw userGameState 
     await drawUserGameState(state)
+    gd.setHeadText("")
+    gd.setHeadPhoto("splash.jpg")
 
     await chooseWordLen(callback.message, gd)
 

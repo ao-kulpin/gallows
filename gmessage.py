@@ -22,6 +22,6 @@ class GMessage:
             self._markup = markup          
             self._changeCount += 1
         def setPhoto(self, photo: str):                    
+            self._photoCount += int(self._photo != photo)
             self._photo  = photo          
-            self._photoCount += 1
 

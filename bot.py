@@ -62,6 +62,9 @@ async def user_away(callback: types.CallbackQuery, state: FSMContext):
 
     gd.setChatText(text.userAway.format(userName=gd.userName))
 
+    gd.setHeadText("")
+    gd.setHeadPhoto("splash.jpg")
+
     gd.setChatMarkup(None)
     await gd.redrawAll(callback.message)
 
