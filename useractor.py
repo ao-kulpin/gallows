@@ -192,7 +192,8 @@ def buidUserGuessCharKeyboad(resolvedChars: list[str], guessedChar: str, firstTr
     return builder.as_markup()
 
 
-@router.callback_query(StateFilter("userStart", "userBotWin", "userUnknownWord", "userWin"),  F.data.in_(["user_word", "replay"]))
+@router.callback_query(StateFilter("userStart", "userBotWin", "userUnknownWord", "userWin", "choiseActor"),  
+                       F.data.in_(["user_word", "replay", "user_actor"]))
 async def user_word(callback: types.CallbackQuery, state: FSMContext):
     gd = (await state.get_data())["gameData"]
     ud = gd.userData
@@ -254,7 +255,6 @@ async def user_no_char(callback: types.CallbackQuery, state: FSMContext):
     ud = gd.userData
 
     prevChar = ud.guessedChar
-    ud._picNum += 1
 
     if ud.charCount == 0:
         ud.failedChars.append(ud.guessedChar)

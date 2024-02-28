@@ -9,6 +9,8 @@ from typing import Optional
 
 from gameinfo import GameData
 from wordset import WordSet
+from common import buildKeyboard
+
 import text
 import char
 import data
@@ -38,22 +40,33 @@ logging.basicConfig(level=logging.INFO)
 async def cmd_start(message: types.Message, state: FSMContext):
     gd = GameData(userName=message.from_user.first_name)
     ud = gd.userData
-    ud._picNum = 0 ##############################
     await state.set_data({"gameData": gd})
-    ###print(f"start: gd({gd}) ud({ud})")
     gd.setHeadPhoto("splash.jpg")
-    #############gd.setHeadText("Картинка " + str(ud._picNum)) #############
-    builder = InlineKeyboardBuilder()
-    builder.row(types.InlineKeyboardButton(text="Я задумал(а) слово", callback_data="user_word"))
-    builder.row(types.InlineKeyboardButton(text="Пошел в ... c такими играми", callback_data="user_away"))
-
     gd.setChatText(text.userGreet.format(userName=gd.userName))
-    gd.setChatMarkup(builder.as_markup())
+    gd.setChatMarkup(buildKeyboard([
+        [["Да, самое время поиграть", "choise_actor"]],
+        [["Нет, играть с незнакомыми ботами опасно", "user_away"]]
+    ]))
     await gd.redrawAll(message)
 
     logger.put(text.logUserStart.format(firstName=message.from_user.first_name, lastName=message.from_user.last_name))
 
     await state.set_state("userStart")
+
+@dp.callback_query(StateFilter("userStart"),  F.data.in_(["choise_actor"]))
+async def choise_actor(callback: types.CallbackQuery, state: FSMContext):
+    gd = (await state.get_data())["gameData"]
+    gd.setHeadPhoto("splash.jpg")
+    gd.setChatText(text.choiseActor.format(userName=gd.userName))
+    gd.setChatMarkup(buildKeyboard([
+        [[f"Загадаю я ({gd.userName})", "user_actor"]],
+        [["Загдывай ты (бот)", "bot_actor"]]
+    ]))
+    await gd.redrawAll(callback.message)
+
+    await state.set_state("choiseActor")
+
+
 
 @dp.callback_query(StateFilter("userStart", "userBotWin", "userUnknownWord", "userWin"),  F.data.in_(["user_away", "noreplay"]))
 async def user_away(callback: types.CallbackQuery, state: FSMContext):
