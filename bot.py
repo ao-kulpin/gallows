@@ -43,10 +43,11 @@ async def cmd_start(message: types.Message, state: FSMContext):
     await state.set_data({"gameData": gd})
     gd.setHeadPhoto("splash.jpg")
     gd.setChatText(text.userGreet.format(userName=gd.userName))
-    gd.setChatMarkup(buildKeyboard([
-        [["Да, самое время поиграть", "choise_actor"]],
-        [["Нет, играть с незнакомыми ботами опасно", "user_away"]]
-    ]))
+    gd.setChatMarkup(buildKeyboard(
+        [
+            [["Да, самое время поиграть", "choise_actor"]],
+            [["Нет, играть с незнакомыми ботами опасно", "user_away"]]
+        ]))
     await gd.redrawAll(message)
 
     logger.put(text.logUserStart.format(firstName=message.from_user.first_name, lastName=message.from_user.last_name))
@@ -58,10 +59,11 @@ async def choise_actor(callback: types.CallbackQuery, state: FSMContext):
     gd = (await state.get_data())["gameData"]
     gd.setHeadPhoto("splash.jpg")
     gd.setChatText(text.choiseActor.format(userName=gd.userName))
-    gd.setChatMarkup(buildKeyboard([
-        [[f"Загадаю я ({gd.userName})", "user_actor"]],
-        [["Загдывай ты (бот)", "bot_actor"]]
-    ]))
+    gd.setChatMarkup(buildKeyboard(
+        [
+            [[f"Загадаю я ({gd.userName})", "user_actor"]],
+            [["Загдывай ты (бот)", "bot_actor"]]
+        ]))
     await gd.redrawAll(callback.message)
 
     await state.set_state("choiseActor")
@@ -128,11 +130,11 @@ async def main():
         data.wordsByLen[wl][wlc] = wi
         wordLenCounts[wl] += 1
 
-    ### for wli in range(data.wordsByLen.size):
-    ###    print(f"wli({wli}:{data.wordsByLen[wli].size})->{[adata.llRussWords[i] for i in data.wordsByLen[wli]]}")
+###    for wli in range(data.wordsByLen.size):
+###        print(f"wli({wli}:{data.wordsByLen[wli].size})->{[data.allRussWords[i] for i in data.wordsByLen[wli]]}")
     
-    ### for i in range(data.wordLenMax):    
-    ###  print(f"{i}: {wordLens[i]}")  
+###    for i in range(data.wordLenMax):    
+###      print(f"{i}: {wordLens[i]}")  
 
     print(f"{str(data.allRussWords.size)} words are loaded")
 

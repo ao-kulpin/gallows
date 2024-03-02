@@ -1,6 +1,6 @@
 from gameinfo import GameData
 from wordset import WordSet
-from common import buidUserReplayKeyboad
+from common import buidUserReplayKeyboad, buildKeyboard
 
 import data
 import text
@@ -17,26 +17,15 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 router = Router()
 
 def buildUserWordLenKeyboad(wordLen: int):
-    builder = InlineKeyboardBuilder()
-
-    lenKeys = []
-    if wordLen > data.wordLenMin:
-        lenKeys.append(types.InlineKeyboardButton(text="меньше чем " + str(wordLen), callback_data="word_len_dec"))
-                       
-    lenKeys.append(types.InlineKeyboardButton(text=str(wordLen) + " букв(ы)", callback_data="word_len_exact"))
-
-    if wordLen < data.wordsByLen.size - 1:
-        lenKeys.append(types.InlineKeyboardButton(text="больше чем " + str(wordLen), callback_data="word_len_inc"))
-    builder.row(*lenKeys)
-
-    charKeys = []
-    for i in range(wordLen):
-        charKeys.append(
-            types.InlineKeyboardButton(text="?", callback_data=("char_" + str(i)))
-        )
-    builder.row(*charKeys)
-
-    return builder.as_markup()        
+    return buildKeyboard(
+        [
+            ([["меньше чем " + str(wordLen), "word_len_dec"]] if wordLen > data.wordLenMin else []) 
+              + [[str(wordLen) + " букв(ы)", "word_len_match"]] 
+              + ([["больше чем " + str(wordLen), "word_len_inc"]] 
+                    if wordLen < data.wordsByLen.size - 1 else []),
+            map(lambda i: ["?", "char_" + str(i)], range(wordLen))
+        ]
+    )
 
 
 async def chooseWordLen(userMsg: Message, gd: GameData):
@@ -72,40 +61,15 @@ async def drawUserGameState(state: FSMContext) -> None:
                    successCount=successCount, successChars=successCharsStr, failureRemain=failureRemain))
         gd.setHeadPhoto(data.failurePhotos[failureRemain])                   
 
-def buildUserWordLenKeyboad(wordLen: int):
-    builder = InlineKeyboardBuilder()
-
-    lenKeys = []
-    if wordLen > data.wordLenMin:
-        lenKeys.append(types.InlineKeyboardButton(text="меньше чем " + str(wordLen), callback_data="word_len_dec"))
-                       
-    lenKeys.append(types.InlineKeyboardButton(text=str(wordLen) + " букв(ы)", callback_data="word_len_exact"))
-
-    if wordLen < data.wordsByLen.size - 1:
-        lenKeys.append(types.InlineKeyboardButton(text="больше чем " + str(wordLen), callback_data="word_len_inc"))
-    builder.row(*lenKeys)
-
-    charKeys = []
-    for i in range(wordLen):
-        charKeys.append(
-            types.InlineKeyboardButton(text="?", callback_data=("char_" + str(i)))
-        )
-    builder.row(*charKeys)
-
-    return builder.as_markup()
-
 def buildUserGuessCharKeyboad(resolvedChars: list[str], guessedChar: str, firstTry: bool = True):
-    builder = InlineKeyboardBuilder()
-    charKeys = []
-    for i in range(len(resolvedChars)):
-        charKeys.append(
-            types.InlineKeyboardButton(text=resolvedChars[i], callback_data=("char_" + str(i)))
-        )
-    builder.row(*charKeys)
-    builder.row(types.InlineKeyboardButton(text=("Нет буквы " if firstTry else "Больше нет букв ") 
-                                                 + guessedChar + " в моем слове", 
-                                           callback_data="nochar"))
-    return builder.as_markup()
+    return buildKeyboard(
+        [
+            map(lambda ch_ind: [ch_ind[0], "char_" + str(ch_ind[1])], 
+                zip(resolvedChars, range(len(resolvedChars)))),
+
+            [[("Нет буквы " if firstTry else "Больше нет букв ") + guessedChar + " в моем слове", "nochar"]]
+        ]
+    )
 
 async def toBotWinState(userMsg: Message, state: FSMContext) -> bool:    
     assert await state.get_state() == "userCharGuess"
@@ -178,20 +142,6 @@ async def toUserUnknownWordState(userMsg: Message, state: FSMContext) -> bool:
     else:
         return False
 
-def buidUserGuessCharKeyboad(resolvedChars: list[str], guessedChar: str, firstTry: bool = True):
-    builder = InlineKeyboardBuilder()
-    charKeys = []
-    for i in range(len(resolvedChars)):
-        charKeys.append(
-            types.InlineKeyboardButton(text=resolvedChars[i], callback_data=("char_" + str(i)))
-        )
-    builder.row(*charKeys)
-    builder.row(types.InlineKeyboardButton(text=("Нет буквы " if firstTry else "Больше нет букв ") 
-                                                 + guessedChar + " в моем слове", 
-                                           callback_data="nochar"))
-    return builder.as_markup()
-
-
 @router.callback_query(StateFilter("userStart", "userBotWin", "userUnknownWord", "userWin", "choiseActor"),  
                        F.data.in_(["user_word", "replay", "user_actor"]))
 async def user_word(callback: types.CallbackQuery, state: FSMContext):
@@ -222,8 +172,8 @@ async def user_word_len_dec(callback: types.CallbackQuery, state: FSMContext):
     ud.wordLen += 1
     await chooseWordLen(callback.message, gd)
 
-@router.callback_query(StateFilter("userWordLen"),  F.data == "word_len_exact")
-async def user_word_len_exact(callback: types.CallbackQuery, state: FSMContext):
+@router.callback_query(StateFilter("userWordLen"),  F.data == "word_len_match")
+async def user_word_len_match(callback: types.CallbackQuery, state: FSMContext):
     gd = (await state.get_data())["gameData"]
     ud = gd.userData
 
@@ -271,7 +221,7 @@ async def user_no_char(callback: types.CallbackQuery, state: FSMContext):
 
         keyboardHelp: str = text.userKeyboardHelp.format(guessedChar=ud.guessedChar) 
         gd.setChatText(text.userGuessFail.format(prevChar=prevChar, guessedChar=ud.guessedChar, keyboardHelp=keyboardHelp))
-        gd.setChatMarkup(buidUserGuessCharKeyboad(ud.resolvedChars, 
+        gd.setChatMarkup(buildUserGuessCharKeyboad(ud.resolvedChars, 
                                                   guessedChar=ud.guessedChar, 
                                                   firstTry=True))
         await drawUserGameState(state)
@@ -291,7 +241,7 @@ async def user_no_char(callback: types.CallbackQuery, state: FSMContext):
         
         keyboardHelp: str = text.userKeyboardHelp.format(guessedChar=ud.guessedChar) 
         gd.setChatText(text.userGuessSuccess.format(prevChar=prevChar, guessedChar=ud.guessedChar, keyboardHelp=keyboardHelp))
-        gd.setChatMarkup(buidUserGuessCharKeyboad(ud.resolvedChars, guessedChar=ud.guessedChar, 
+        gd.setChatMarkup(buildUserGuessCharKeyboad(ud.resolvedChars, guessedChar=ud.guessedChar, 
                                                                     firstTry=(ud.charCount == 0)))
         await drawUserGameState(state)
         await gd.redrawAll(callback.message) 
@@ -324,7 +274,7 @@ async def user_open_char(callback: types.CallbackQuery, state: FSMContext):
             if curChar == '?':
                 ud.successChars.append(ud.guessedChar)
 
-    gd.setChatMarkup(buidUserGuessCharKeyboad(ud.resolvedChars, guessedChar=ud.guessedChar, 
+    gd.setChatMarkup(buildUserGuessCharKeyboad(ud.resolvedChars, guessedChar=ud.guessedChar, 
                                                                     firstTry=(ud.charCount == 0)))
     await drawUserGameState(state)
     await gd.redrawAll(callback.message)                                                                    
