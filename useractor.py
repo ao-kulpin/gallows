@@ -158,18 +158,15 @@ async def user_word(callback: types.CallbackQuery, state: FSMContext):
 
     await state.set_state("userWordLen")
 
-@router.callback_query(StateFilter("userWordLen"),  F.data == "word_len_dec")
-async def user_word_len_dec(callback: types.CallbackQuery, state: FSMContext):
+@router.callback_query(StateFilter("userWordLen"),  F.data.in_(["word_len_dec", "word_len_inc"]))
+async def user_word_len_change(callback: types.CallbackQuery, state: FSMContext):
     gd = (await state.get_data())["gameData"]
     ud = gd.userData
-    ud.wordLen -= 1
-    await chooseWordLen(callback.message, gd)
-
-@router.callback_query(StateFilter("userWordLen"),  F.data == "word_len_inc")
-async def user_word_len_dec(callback: types.CallbackQuery, state: FSMContext):
-    gd = (await state.get_data())["gameData"]
-    ud = gd.userData
-    ud.wordLen += 1
+    if callback.data == "word_len_dec":
+        ud.wordLen -= 1
+    else:
+        assert callback.data == "word_len_inc"
+        ud.wordLen += 1
     await chooseWordLen(callback.message, gd)
 
 @router.callback_query(StateFilter("userWordLen"),  F.data == "word_len_match")
