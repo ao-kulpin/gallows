@@ -28,7 +28,7 @@ def buildUserWordLenKeyboad(wordLen: int):
     )
 
 
-async def chooseWordLen(userMsg: Message, gd: GameData):
+async def chooseUserWordLen(userMsg: Message, gd: GameData):
     ud = gd.userData
 
     gd.setChatText(text.userWord.format(userName=gd.userName))
@@ -154,7 +154,7 @@ async def user_word(callback: types.CallbackQuery, state: FSMContext):
     gd.setHeadText("")
     gd.setHeadPhoto("splash.jpg")
 
-    await chooseWordLen(callback.message, gd)
+    await chooseUserWordLen(callback.message, gd)
 
     await state.set_state("userWordLen")
 
@@ -167,7 +167,7 @@ async def user_word_len_change(callback: types.CallbackQuery, state: FSMContext)
     else:
         assert callback.data == "word_len_inc"
         ud.wordLen += 1
-    await chooseWordLen(callback.message, gd)
+    await chooseUserWordLen(callback.message, gd)
 
 @router.callback_query(StateFilter("userWordLen"),  F.data == "word_len_match")
 async def user_word_len_match(callback: types.CallbackQuery, state: FSMContext):

@@ -34,7 +34,7 @@ RussNounsFN = "russian_nouns_without_filter.txt"  #####"russian_nouns.txt"
 
 bot = Bot(token=config.bot_token.get_secret_value())
 dp = Dispatcher()
-dp.include_router(useractor.router, botactor.router)
+dp.include_routers(useractor.router, botactor.router)
 logging.basicConfig(level=logging.INFO)
 
 @dp.message(Command("start"))
