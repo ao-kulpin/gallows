@@ -18,6 +18,7 @@ import filter
 import gmessage as gm
 import logger
 import useractor
+import botactor
 
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.exceptions import TelegramBadRequest
@@ -33,7 +34,7 @@ RussNounsFN = "russian_nouns_without_filter.txt"  #####"russian_nouns.txt"
 
 bot = Bot(token=config.bot_token.get_secret_value())
 dp = Dispatcher()
-dp.include_router(useractor.router)
+dp.include_router(useractor.router, botactor.router)
 logging.basicConfig(level=logging.INFO)
 
 @dp.message(Command("start"))
