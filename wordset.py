@@ -1,3 +1,7 @@
+import numpy as np
+
+import math
+
 import data
 import filter
 import char
@@ -28,3 +32,51 @@ class WordSet:
         counter = char.CharCounter()
         counter.countWords(self._words, resolvedChars)
         return counter.getMaxChar()
+    
+def getWordComplexity(word: str) -> int:
+    wordLen: int = len(word)
+    resolvedChars: list[str] = ["?"] * wordLen
+    ws = WordSet(wordLen)
+    failCount: int = 0
+    while "?" in resolvedChars:
+        guessedChar: str = ws.countMaxChar(resolvedChars)
+        if guessedChar in word:
+            # successful guess
+            for i in range(wordLen): # update resolvedChars
+                if word[i] == guessedChar:
+                    assert resolvedChars[i] == "?"
+                    resolvedChars[i] = guessedChar
+
+            ws.filter(existChar=guessedChar, resolvedChars=resolvedChars)
+        else:
+            # failed guess
+            failCount += 1
+            ws.filter(absentChar=guessedChar)      
+
+    return failCount
+
+async def findRandomComplexWord(wordLen: int, showProgress) ->str:
+    words = data.wordsByLen[wordLen]
+    wordsSize: int = words.size  
+
+    maxComplexity: int = -1
+    complexWord: str = ""
+    percent: int = -1
+    for i in range(data.botWordProbeNumber):
+        newPercent = math.floor(100 * i / data.botWordProbeNumber)
+        if newPercent != percent:
+            percent = newPercent
+            await showProgress(percent)
+        word:str = data.getRussWord(words[math.floor(wordsSize * np.random.random_sample())])
+        comlexity: int = getWordComplexity(word)
+        if comlexity > maxComplexity \
+            or comlexity == maxComplexity and np.random.random_sample() > 0.5:
+                                              # randomization of the choice 
+            maxComplexity = comlexity
+            complexWord = word
+
+    print(f"\n *** findRandomComplexWord->{complexWord}({maxComplexity})")
+
+    return complexWord
+
+

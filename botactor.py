@@ -1,11 +1,14 @@
 from gameinfo import GameData
-from wordset import WordSet
+from wordset import WordSet, findRandomComplexWord
 from common import buidUserReplayKeyboad, buildKeyboard
 
 import data
 import text
 import logger
 
+import numpy as np
+import math
+import time
 
 from aiogram import Router, F
 from aiogram.filters import Command, StateFilter
@@ -58,6 +61,45 @@ async def bot_word_len_change(callback: types.CallbackQuery, state: FSMContext):
     else:
         assert callback.data == "word_len_inc"
         bd.wordLen += 1
-    await chooseBotWordLen(callback.message, gd)    
+    await chooseBotWordLen(callback.message, gd)
+
+@router.callback_query(StateFilter("botWordLen"), F.data.in_(["word_len_match", "word_len_random"]))
+async def bot_word_len_match(callback: types.CallbackQuery, state: FSMContext):
+    gd = (await state.get_data())["gameData"]
+    bd = gd.botData
+
+    if callback.data == "word_len_random":
+        bd.wordLen = math.floor(data.botWordLenMin 
+                                + (data.botWordLenMax + 1 - data.botWordLenMin) 
+                                    * np.random.random_sample())
+
+    bd.resolvedChars = ["?"] * bd.wordLen
+    bd.successChars  = []
+    bd.failedChars   = []
+
+    gd.setChatText("Подбираю слово ...")
+    gd.setChatMarkup(None)
+
+    await gd.redrawAll(callback.message)
+
+    redrawMoment:float = 0.0
+    async def showProgress(percent: int) -> None:
+        nonlocal redrawMoment
+        gd.setChatText(text.botRandomWord.format(wordLen=bd.wordLen, percent=percent))
+        moment:float = time.time()
+        if moment - redrawMoment > 0.5:
+            await gd.redrawAll(callback.message)
+            redrawMoment = moment      
+
+    bd.guessedWord   = await findRandomComplexWord(bd.wordLen, showProgress)
+
+    logger.put(text.logBotGuessWord.format(guessedWord=bd.guessedWord))
+
+    gd.setChatText(text.botGuessStart.format(wordLen=bd.wordLen))
+
+    await gd.redrawAll(callback.message)
+
+    await state.set_state("botCharGuess")
+
 
 

@@ -42,6 +42,20 @@ userGuessStart = """
 Как насчет <b>буквы <i>{guessedChar}</i></b>?
 {keyboardHelp}
 """
+
+botRandomWord = """
+Подбираю слово из {wordLen} букв(ы): {percent}% ...
+"""
+
+logBotGuessWord = """
+Бот задумал слово {guessedWord}
+"""
+
+botGuessStart = """
+Я (бот) задумал слово из <b>{wordLen} букв(ы)</b>
+
+"""
+
 logUserGuessStart = """
 {userName} задумал слов из {wordLen} букв
 """
