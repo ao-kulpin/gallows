@@ -55,7 +55,9 @@ async def cmd_start(message: types.Message, state: FSMContext):
 
     await state.set_state("userStart")
 
-@dp.callback_query(StateFilter("userStart", "botUserWin", "botBotWin"),  F.data.in_(["choise_actor", "replay"]))
+@dp.callback_query(StateFilter("userStart", "userUserWin", "userBotWin",
+                               "botUserWin", "botBotWin"),  
+                   F.data.in_(["choise_actor", "replay"]))
 async def choise_actor(callback: types.CallbackQuery, state: FSMContext):
     gd = (await state.get_data())["gameData"]
     gd.setHeadPhoto("splash.jpg")
@@ -71,7 +73,9 @@ async def choise_actor(callback: types.CallbackQuery, state: FSMContext):
 
 
 
-@dp.callback_query(StateFilter("userStart", "userBotWin", "userUnknownWord", "userWin"),  F.data.in_(["user_away", "noreplay"]))
+@dp.callback_query(StateFilter("userStart", "userBotWin", "userUserWin", "userUnknownWord", 
+                               "botUserWin", "botBotWin"),  
+                  F.data.in_(["user_away", "noreplay"]))
 async def user_away(callback: types.CallbackQuery, state: FSMContext):
     gd = (await state.get_data())["gameData"]
     ud = gd.userData

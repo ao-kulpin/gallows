@@ -110,7 +110,7 @@ async def toUserWinState(userMsg: Message, state: FSMContext) -> bool:
         await drawUserGameState(state)
         await gd.redrawAll(userMsg)
 
-        await state.set_state("userWin")
+        await state.set_state("userUserWin")
 
         logger.put(text.logUserWin.format(userName=gd.userName, unknownWord=("".join(ud.resolvedChars))))
 
@@ -141,8 +141,7 @@ async def toUserUnknownWordState(userMsg: Message, state: FSMContext) -> bool:
     else:
         return False
 
-@router.callback_query(StateFilter("userStart", "userBotWin", "userUnknownWord", "userWin", "choiseActor"),  
-                       F.data.in_(["user_word", "replay", "user_actor"]))
+@router.callback_query(StateFilter("choiseActor"),  F.data.in_(["user_actor"]))
 async def user_word(callback: types.CallbackQuery, state: FSMContext):
     gd = (await state.get_data())["gameData"]
     ud = gd.userData
