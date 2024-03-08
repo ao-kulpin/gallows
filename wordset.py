@@ -55,9 +55,19 @@ def getWordComplexity(word: str) -> int:
 
     return failCount
 
-async def findRandomComplexWord(wordLen: int, showProgress) ->str:
-    words = data.wordsByLen[wordLen]
-    wordsSize: int = words.size  
+fullWordList = None
+
+async def findRandomComplexWord(wordLen, showProgress) ->str:
+    global fullWordList
+    words = None
+    if wordLen == None:
+        if fullWordList == None:
+            fullWordList = range(len(data.allRussWords))
+        words = fullWordList
+    else:
+        words = data.wordsByLen[wordLen]
+
+    wordsSize: int = len(words)  
 
     maxComplexity: int = -1
     complexWord: str = ""

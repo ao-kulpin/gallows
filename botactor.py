@@ -149,15 +149,8 @@ async def bot_word_len_match(callback: types.CallbackQuery, state: FSMContext):
     bd = gd.botData
 
     if callback.data == "word_len_random":
-        bd.wordLen = math.floor(data.botWordLenMin 
-                                + (data.botWordLenMax + 1 - data.botWordLenMin) 
-                                    * np.random.random_sample())
+        bd.wordLen = None
 
-    bd.resolvedChars = ["?"] * bd.wordLen
-    bd.successChars  = []
-    bd.failedChars   = []
-
-    gd.setChatText("Подбираю слово ...")
     gd.setChatMarkup(None)
 
     await gd.redrawAll(callback.message)

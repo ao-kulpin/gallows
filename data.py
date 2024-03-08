@@ -11,7 +11,7 @@ startBotWordLen  = 7
 botWordLenMin = 4
 botWordLenMax = 11
 
-botWordProbeNumber = 400
+botWordProbeNumber = 200
 
 failurePhotos = ("error0.jpg", "error1.jpg", "error2.jpg", 
                  "error3.jpg", "error4.jpg", "error5.jpg", "error6.jpg")
