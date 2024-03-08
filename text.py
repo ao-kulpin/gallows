@@ -52,7 +52,9 @@ logBotGuessWord = """
 """
 
 botGuessStart = """
-Я (бот) задумал слово из <b>{wordLen} букв(ы)</b>
+Я (бот) задумал слово из <b>{wordLen} букв(ы)</b>, см выше.
+
+Какую букву открыть для Вас?:
 
 """
 
@@ -66,12 +68,27 @@ userGuessFail = """
 Эта Надежда связана с <b>буквой <i>{guessedChar}</i></b>
 {keyboardHelp}
 """
+botGuessFail = """
+Увы, <i>{userName}</i>! Я (бот) не смог найти с <b>букву <i>{guessedChar}</i></b> в своем слове. К сожалению, этот выбор \
+не приблизил Вашу победу. 
+
+Подумайте лучше, какую букву следут открыть?
+"""
 
 userGuessSuccess = """
 Ура! Наконец мне повезло с буквой <i>{prevChar}</i> и дышать стало чуть легче. 
 Давайте теперь попробуем <b>букву <i>{guessedChar}</i></b>
 {keyboardHelp}
 """
+
+botGuessSuccess = """
+Поздравляю, <i>{userName}</i>!
+В моем слове нашлась {charCount} <b>букв(а) <i>{guessedChar}</i></b>
+Вы все ближе к Победе!
+Какую букву открыть теперь?:
+"""
+
+
 
 userKeyboardHelp = """
 Пож-та кликните мышкой (пальцем) над всеми ячейками (ниже) в которых есть буква <b><i>{guessedChar}</i></b>
@@ -111,6 +128,17 @@ userWin = """
 Сыграем еще?
 """
 
+botUserWin = """
+Великолепно, <i>{userName}</i>!
+Вы блестяще разгадали мое слово:
+
+<b><u>{resolvedWord}</u></b>
+
+Я восхищаюсь Вашими Способностями!
+
+Сыграем еще?
+"""
+
 logUserWin = """
 {userName} выиграл со словом {unknownWord}
 """
@@ -139,6 +167,16 @@ userGameState = """
 
 
 """
+
+botGameState = """
+Мое слово: <b><u>{resolvedChars}</u></b> ({wordLen} букв/ы)
+Ваши ошибки ({failedCount}): {failedChars}
+Ваши удачи ({successCount}): {successChars}
+До моей победы еще: <b>{failureRemain} ошибки</b>(ок)
+До Вашей победы: <b>{unresolveCount} неразгаданных букв(ы)</b>
+
+"""
+
 
 
 

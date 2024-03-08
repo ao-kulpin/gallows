@@ -5,6 +5,7 @@ from common import buidUserReplayKeyboad, buildKeyboard
 import data
 import text
 import logger
+import char
 
 import numpy as np
 import math
@@ -15,11 +16,20 @@ from aiogram.filters import Command, StateFilter
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
-from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram.utils.keyboard import InlineKeyboardBuilder, InlineKeyboardMarkup
 
 router = Router()
 
-def buildBotWordLenKeyboad(wordLen: int):
+def buildBoutUntestedKeyboard(untestedChars: list[str]) -> InlineKeyboardMarkup:
+    return buildKeyboard(
+        [
+            map(lambda ch_ind: [ch_ind[0], "char_" + str(ch_ind[1])], 
+                zip(untestedChars, range(len(untestedChars))))
+        ]
+    )
+
+
+def buildBotWordLenKeyboad(wordLen: int) -> InlineKeyboardMarkup:
     return buildKeyboard(
         [
             ([["меньше чем " + str(wordLen), "word_len_dec"]] if wordLen > data.wordLenMin else []) 
@@ -39,7 +49,54 @@ async def chooseBotWordLen(userMsg: Message, gd: GameData):
     gd.setChatMarkup(buildBotWordLenKeyboad(bd.wordLen))
     await gd.redrawAll(userMsg)
 
-@router.callback_query(StateFilter("choiseActor"),  
+async def drawBotGameState(state: FSMContext) -> None:
+    gd = (await state.get_data())["gameData"]
+    bd = gd.botData
+    if bd.resolvedChars == None:
+        # current game state is empty
+        gd.setHeadText("")
+    else:
+        unresolveCount = bd.resolvedChars.count("?")
+        successCount=len(bd.resolvedChars) - unresolveCount
+
+        successCharsStr = ""
+        for sc in bd.successChars:
+            if successCharsStr != "":
+                successCharsStr += ", "
+            successCharsStr += sc
+            scCount = bd.resolvedChars.count(sc)    
+            assert scCount >= 1
+            if scCount > 1:
+                successCharsStr += f"({scCount})"
+
+        failureRemain = data.failureNumber-len(bd.failedChars)
+
+        gd.setHeadText(text.botGameState.format(resolvedChars=(" ".join(bd.resolvedChars)), wordLen=bd.wordLen,
+                   failedCount=len(bd.failedChars), failedChars=", ".join(bd.failedChars),
+                   successCount=successCount, successChars=successCharsStr, failureRemain=failureRemain,
+                   unresolveCount=unresolveCount))
+        gd.setHeadPhoto(data.failurePhotos[failureRemain])     
+
+async def toUserWinState(userMsg: Message, state: FSMContext) -> bool:    
+    assert await state.get_state() == "botCharGuess"
+
+    gd = (await state.get_data())["gameData"]
+    bd = gd.botData
+
+    if bd.resolvedChars.count("?") == 0:
+        # all chars are resolved
+        gd.setChatText(text.botUserWin.format(userName=gd.userName, resolvedWord=(" ".join(bd.resolvedChars))))
+        gd.setChatMarkup(buidUserReplayKeyboad())
+
+        await drawBotGameState(state)
+        await gd.redrawAll(userMsg)
+        await state.set_state("botUserWin")
+
+        return True
+    else:
+        return False
+    
+@router.callback_query(StateFilter("choiseActor"), 
                        F.data.in_(["bot_actor"]))
 async def bot_word(callback: types.CallbackQuery, state: FSMContext):
     gd = (await state.get_data())["gameData"]
@@ -87,19 +144,56 @@ async def bot_word_len_match(callback: types.CallbackQuery, state: FSMContext):
         nonlocal redrawMoment
         gd.setChatText(text.botRandomWord.format(wordLen=bd.wordLen, percent=percent))
         moment:float = time.time()
-        if moment - redrawMoment > 0.5:
+        if moment - redrawMoment > 0.5: # provide intervals to suppress weird Telegram errors
             await gd.redrawAll(callback.message)
             redrawMoment = moment      
 
     bd.guessedWord   = await findRandomComplexWord(bd.wordLen, showProgress)
 
+    bd.wordLen = len(bd.guessedWord)
+
+    bd.resolvedChars = ["?"] * bd.wordLen
+    bd.successChars  = []
+    bd.failedChars   = []
+    bd.untestedChars = list(char.allChars)
+    
     logger.put(text.logBotGuessWord.format(guessedWord=bd.guessedWord))
 
     gd.setChatText(text.botGuessStart.format(wordLen=bd.wordLen))
 
+    gd.setChatMarkup(buildBoutUntestedKeyboard(bd.untestedChars))
+
+    await drawBotGameState(state)
     await gd.redrawAll(callback.message)
 
     await state.set_state("botCharGuess")
+
+@router.callback_query(StateFilter("botCharGuess"), F.data.startswith("char_"))
+async def bot_open_char(callback: types.CallbackQuery, state: FSMContext):
+    gd = (await state.get_data())["gameData"]
+    bd = gd.botData
+
+    charPos = int(callback.data.split("_")[1])
+    guessedChar = bd.untestedChars.pop(charPos)
+
+    charCount = bd.guessedWord.count(guessedChar)
+    if charCount == 0:
+        bd.failedChars += guessedChar
+        gd.setChatText(text.botGuessFail.format(userName=gd.userName, guessedChar=guessedChar))
+    else:    
+        bd.successChars += guessedChar
+        for i in [j for j in range(bd.wordLen) if bd.guessedWord[j] == guessedChar]:
+            bd.resolvedChars[i] = guessedChar
+        if await toUserWinState(callback.message, state):
+            return
+        gd.setChatText(text.botGuessSuccess.format(
+            userName=gd.userName, guessedChar=guessedChar, charCount=charCount))
+
+    gd.setChatMarkup(buildBoutUntestedKeyboard(bd.untestedChars))
+
+    await drawBotGameState(state)
+    await gd.redrawAll(callback.message)
+
 
 
 
