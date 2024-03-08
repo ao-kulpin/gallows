@@ -96,6 +96,29 @@ async def toUserWinState(userMsg: Message, state: FSMContext) -> bool:
     else:
         return False
     
+async def toBotWinState(userMsg: Message, state: FSMContext) -> bool:    
+    assert await state.get_state() == "botCharGuess"
+
+    gd = (await state.get_data())["gameData"]
+    bd = gd.botData
+
+    if len(bd.failedChars) >= data.failureNumber:
+        # too many failures - user has won
+        
+        gd.setChatText(text.botBotWin.format(userName=gd.userName, 
+                                             guessedChar=bd.guessedChar,
+                                             guessedWord=(" ".join(bd.guessedWord)), 
+                                             failureNumber=(data.failureNumber-1)))
+        gd.setChatMarkup(buidUserReplayKeyboad())
+       
+        await drawBotGameState(state)
+        await gd.redrawAll(userMsg)
+
+        await state.set_state("botBotWin")
+        return True
+    else:
+        return False
+    
 @router.callback_query(StateFilter("choiseActor"), 
                        F.data.in_(["bot_actor"]))
 async def bot_word(callback: types.CallbackQuery, state: FSMContext):
@@ -174,20 +197,26 @@ async def bot_open_char(callback: types.CallbackQuery, state: FSMContext):
     bd = gd.botData
 
     charPos = int(callback.data.split("_")[1])
-    guessedChar = bd.untestedChars.pop(charPos)
+    bd.guessedChar = bd.untestedChars.pop(charPos)
 
-    charCount = bd.guessedWord.count(guessedChar)
+    charCount = bd.guessedWord.count(bd.guessedChar)
     if charCount == 0:
-        bd.failedChars += guessedChar
-        gd.setChatText(text.botGuessFail.format(userName=gd.userName, guessedChar=guessedChar))
+        bd.failedChars += bd.guessedChar
+        
+        if await toBotWinState(callback.message, state):
+            return
+        
+        gd.setChatText(text.botGuessFail.format(userName=gd.userName, guessedChar=bd.guessedChar))
     else:    
-        bd.successChars += guessedChar
-        for i in [j for j in range(bd.wordLen) if bd.guessedWord[j] == guessedChar]:
-            bd.resolvedChars[i] = guessedChar
+        bd.successChars += bd.guessedChar
+        for i in [j for j in range(bd.wordLen) if bd.guessedWord[j] == bd.guessedChar]:
+            bd.resolvedChars[i] = bd.guessedChar
+
         if await toUserWinState(callback.message, state):
             return
+        
         gd.setChatText(text.botGuessSuccess.format(
-            userName=gd.userName, guessedChar=guessedChar, charCount=charCount))
+            userName=gd.userName, guessedChar=bd.guessedChar, charCount=charCount))
 
     gd.setChatMarkup(buildBoutUntestedKeyboard(bd.untestedChars))
 

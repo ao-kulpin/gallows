@@ -55,7 +55,7 @@ async def cmd_start(message: types.Message, state: FSMContext):
 
     await state.set_state("userStart")
 
-@dp.callback_query(StateFilter("userStart", "botUserWin"),  F.data.in_(["choise_actor", "replay"]))
+@dp.callback_query(StateFilter("userStart", "botUserWin", "botBotWin"),  F.data.in_(["choise_actor", "replay"]))
 async def choise_actor(callback: types.CallbackQuery, state: FSMContext):
     gd = (await state.get_data())["gameData"]
     gd.setHeadPhoto("splash.jpg")

@@ -27,7 +27,6 @@ def buildUserWordLenKeyboad(wordLen: int):
         ]
     )
 
-
 async def chooseUserWordLen(userMsg: Message, gd: GameData):
     ud = gd.userData
 
@@ -104,7 +103,7 @@ async def toUserWinState(userMsg: Message, state: FSMContext) -> bool:
     if len(ud.failedChars) >= data.failureNumber:
         # too many failures - user has won
         
-        gd.setChatText(text.userWin.format(userName=gd.userName, unknownWord=(" ".join(ud.resolvedChars)), 
+        gd.setChatText(text.userUserWin.format(userName=gd.userName, unknownWord=(" ".join(ud.resolvedChars)), 
                                            failureNumber=(data.failureNumber-1)))
         gd.setChatMarkup(buidUserReplayKeyboad())
        
