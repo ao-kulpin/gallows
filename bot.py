@@ -144,7 +144,7 @@ async def main():
     print(f"{str(data.allRussWords.size)} words are loaded")
 
     await bot.delete_webhook(drop_pending_updates=True)
-    await dp.start_polling(bot, handle_as_tasks=False)
+    await dp.start_polling(bot, handle_as_tasks=True)  ############ handle_as_tasks=True
 
 
 if __name__ == "__main__":
