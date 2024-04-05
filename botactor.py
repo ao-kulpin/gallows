@@ -3,6 +3,7 @@ from wordset import WordSet, findRandomComplexWord
 from common import buidUserReplayKeyboad, buildKeyboard
 
 import data
+from data import placeholder
 import text
 import logger
 import char
@@ -37,7 +38,7 @@ def buildBotWordLenKeyboad(wordLen: int) -> InlineKeyboardMarkup:
               + [[str(wordLen) + " букв(ы)", "word_len_match"]] 
               + ([["больше чем " + str(wordLen), "word_len_inc"]] 
                     if wordLen < data.wordsByLen.size - 1 else []),
-            map(lambda i: ["?", "char_" + str(i)], range(wordLen)),
+            map(lambda i: [placeholder, "char_" + str(i)], range(wordLen)),
             [["Выбери число букв сам", "word_len_random"]]
         ]
     )
@@ -57,7 +58,7 @@ async def drawBotGameState(state: FSMContext) -> None:
         # current game state is empty
         gd.setHeadText("")
     else:
-        unresolveCount = bd.resolvedChars.count("?")
+        unresolveCount = bd.resolvedChars.count(placeholder)
         successCount=len(bd.resolvedChars) - unresolveCount
 
         successCharsStr = ""
@@ -84,7 +85,7 @@ async def toUserWinState(userMsg: Message, state: FSMContext) -> bool:
     gd = (await state.get_data())["gameData"]
     bd = gd.botData
 
-    if bd.resolvedChars.count("?") == 0:
+    if bd.resolvedChars.count(placeholder) == 0:
         # all chars are resolved
         gd.setChatText(text.botUserWin.format(userName=gd.userName, resolvedWord=(" ".join(bd.resolvedChars))))
         gd.setChatMarkup(buidUserReplayKeyboad())
@@ -177,7 +178,7 @@ async def bot_word_len_match(callback: types.CallbackQuery, state: FSMContext):
 
     bd.wordLen = len(bd.guessedWord)
 
-    bd.resolvedChars = ["?"] * bd.wordLen
+    bd.resolvedChars = [placeholder] * bd.wordLen
     bd.successChars  = []
     bd.failedChars   = []
     bd.untestedChars = list(char.allChars)

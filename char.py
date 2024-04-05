@@ -1,6 +1,7 @@
 import numpy as np
 import numpy.typing as npt
 import data
+from data import placeholder
 
 allChars = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ-"
 
@@ -27,7 +28,7 @@ class CharCounter:
         #print(f"countWord({word} {resolvedChars})")
         assert len(word) == len(resolvedChars)
         for i in range(len(word)):
-            if resolvedChars[i] == "?":
+            if resolvedChars[i] == placeholder:
                 ch: str = word[i]
                 if word.find(ch) == i: # ignore duplicates 
                     self.countChar(ch) 

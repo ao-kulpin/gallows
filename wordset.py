@@ -3,6 +3,7 @@ import numpy as np
 import math
 
 import data
+from data import placeholder
 import filter
 import char
 
@@ -35,16 +36,16 @@ class WordSet:
     
 def getWordComplexity(word: str) -> int:
     wordLen: int = len(word)
-    resolvedChars: list[str] = ["?"] * wordLen
+    resolvedChars: list[str] = [placeholder] * wordLen
     ws = WordSet(wordLen)
     failCount: int = 0
-    while "?" in resolvedChars:
+    while placeholder in resolvedChars:
         guessedChar: str = ws.countMaxChar(resolvedChars)
         if guessedChar in word:
             # successful guess
             for i in range(wordLen): # update resolvedChars
                 if word[i] == guessedChar:
-                    assert resolvedChars[i] == "?"
+                    assert resolvedChars[i] == placeholder
                     resolvedChars[i] = guessedChar
 
             ws.filter(existChar=guessedChar, resolvedChars=resolvedChars)

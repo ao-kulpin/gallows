@@ -13,6 +13,8 @@ botWordLenMax = 11
 
 botWordProbeNumber = 200
 
+placeholder = "\uFFFD"
+
 failurePhotos = ("error0.jpg", "error1.jpg", "error2.jpg", 
                  "error3.jpg", "error4.jpg", "error5.jpg", "error6.jpg")
 

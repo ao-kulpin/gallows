@@ -3,6 +3,7 @@ from wordset import WordSet
 from common import buidUserReplayKeyboad, buildKeyboard
 
 import data
+from data import placeholder
 import text
 import logger
 
@@ -23,7 +24,7 @@ def buildUserWordLenKeyboad(wordLen: int):
               + [[str(wordLen) + " букв(ы)", "word_len_match"]] 
               + ([["больше чем " + str(wordLen), "word_len_inc"]] 
                     if wordLen < data.wordsByLen.size - 1 else []),
-            map(lambda i: ["?", "char_" + str(i)], range(wordLen))
+            map(lambda i: [placeholder, "char_" + str(i)], range(wordLen))
         ]
     )
 
@@ -41,7 +42,7 @@ async def drawUserGameState(state: FSMContext) -> None:
         # current game state is empty
         gd.setHeadText("")
     else:
-        successCount=len(ud.resolvedChars) - ud.resolvedChars.count("?")
+        successCount=len(ud.resolvedChars) - ud.resolvedChars.count(placeholder)
         successCharsStr = ""
 
         for sc in ud.successChars:
@@ -76,7 +77,7 @@ async def toBotWinState(userMsg: Message, state: FSMContext) -> bool:
     gd = (await state.get_data())["gameData"]
     ud = gd.userData
 
-    if ud.resolvedChars.count("?") == 0:
+    if ud.resolvedChars.count(placeholder) == 0:
         # all chars are resolved
         
         gd.setChatText(text.userBotWin.format(userName=gd.userName, resolvedWord=(" ".join(ud.resolvedChars)), 
@@ -172,7 +173,7 @@ async def user_word_len_match(callback: types.CallbackQuery, state: FSMContext):
     gd = (await state.get_data())["gameData"]
     ud = gd.userData
 
-    ud.resolvedChars = ["?"] * ud.wordLen
+    ud.resolvedChars = [placeholder] * ud.wordLen
     ud.successChars  = []
     ud.failedChars   = []
 
@@ -255,18 +256,18 @@ async def user_open_char(callback: types.CallbackQuery, state: FSMContext):
 
     curChar = ud.resolvedChars[charPos]
 
-    if curChar == "?":
+    if curChar == placeholder:
         ud.resolvedChars[charPos] = ud.guessedChar
         ud.charCount += 1
     elif curChar == ud.guessedChar:        
-        ud.resolvedChars[charPos] = "?"
+        ud.resolvedChars[charPos] = placeholder
         ud.charCount -= 1
 
     match ud.charCount:
         case 0:
             ud.successChars.pop()
         case 1:
-            if curChar == '?':
+            if curChar == placeholder:
                 ud.successChars.append(ud.guessedChar)
 
     gd.setChatMarkup(buildUserGuessCharKeyboad(ud.resolvedChars, guessedChar=ud.guessedChar, 
