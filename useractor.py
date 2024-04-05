@@ -112,7 +112,7 @@ async def toUserWinState(userMsg: Message, state: FSMContext) -> bool:
 
         await state.set_state("userUserWin")
 
-        logger.put(text.logUserWin.format(userName=gd.userName, unknownWord=("".join(ud.resolvedChars))))
+        logger.put(text.logUserUserWin.format(userName=gd.userName, unknownWord=("".join(ud.resolvedChars))))
 
         return True
     else:
