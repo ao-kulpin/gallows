@@ -223,12 +223,12 @@ async def user_no_char(callback: types.CallbackQuery, state: FSMContext):
         await drawUserGameState(state)
         await gd.redrawAll(callback.message)
     else:
-        if await toBotWinState(callback.message, state):
-            return
-        
         ud.candidates.filter(existChar=ud.guessedChar, resolvedChars=ud.resolvedChars)
 
         if await toUserUnknownWordState(callback.message, state):
+            return
+
+        if await toBotWinState(callback.message, state):
             return
     
         ud.guessedChar = ud.candidates.countMaxChar(ud.resolvedChars)
