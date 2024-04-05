@@ -91,9 +91,6 @@ async def toUserWinState(userMsg: Message, state: FSMContext) -> bool:
 
         await drawBotGameState(state)
         await gd.redrawAll(userMsg)
-
-        logger.put(text.logBotUserWin.format(userName=gd.userName, guessedWord=bd.guessedWord))
-
         await state.set_state("botUserWin")
 
         return True
@@ -117,10 +114,6 @@ async def toBotWinState(userMsg: Message, state: FSMContext) -> bool:
        
         await drawBotGameState(state)
         await gd.redrawAll(userMsg)
-
-        logger.put(text.logBotBotWin.format(userName=gd.userName, 
-                                            guessedWord=bd.guessedWord, 
-                                            resolvedChars=("".join(bd.resolvedChars))))
 
         await state.set_state("botBotWin")
         return True

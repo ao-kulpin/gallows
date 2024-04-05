@@ -126,10 +126,6 @@ botBotWin = """
 Сыграем еще?
 """
 
-logBotBotWin = """
-{userName} не разгадал слово {guessedWord}({resolvedChars})
-"""
-
 userUserWin = """
 Дорогой(я) <i>{userName}</i>!
 Разгадывая Ваше заковыристое слово:
@@ -155,12 +151,7 @@ botUserWin = """
 Сыграем еще?
 """
 
-logBotUserWin = """
-{userName} разгадал слово {guessedWord}
-"""
-
-
-logUserUserWin = """
+logUserWin = """
 {userName} выиграл со словом {unknownWord}
 """
 
