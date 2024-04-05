@@ -57,6 +57,16 @@ def getWordComplexity(word: str) -> int:
 
 fullWordList = None
 
+class WordStore:
+    def __init__(self) -> None:
+        self._store = {}
+    def add(self, word: str, complexity: int) -> None:
+        self._store.update({word: complexity})
+    def has(self, word: str) -> bool:
+        return self._store.get(word) != None
+
+prevFinds = WordStore()        
+
 async def findRandomComplexWord(wordLen, showProgress) ->str:
     global fullWordList
     words = None
@@ -71,6 +81,7 @@ async def findRandomComplexWord(wordLen, showProgress) ->str:
 
     maxComplexity: int = -1
     complexWord: str = ""
+    prevComplexWord = ""
     percent: int = -1
     for i in range(data.botWordProbeNumber):
         newPercent = math.floor(100 * i / data.botWordProbeNumber)
@@ -83,10 +94,17 @@ async def findRandomComplexWord(wordLen, showProgress) ->str:
             or comlexity == maxComplexity and np.random.random_sample() > 0.5:
                                               # randomization of the choice 
             maxComplexity = comlexity
-            complexWord = word
+            if prevFinds.has(word) :
+                prevComplexWord = word
+            else:
+                complexWord = word
 
-    print(f"\n *** findRandomComplexWord->{complexWord}({maxComplexity})")
+    print(f"\n *** findRandomComplexWord->{complexWord}/{prevComplexWord}({maxComplexity})")
 
-    return complexWord
+    if complexWord == "":
+        return prevComplexWord
+    else:
+        prevFinds.add(complexWord, maxComplexity)
+        return complexWord
 
 

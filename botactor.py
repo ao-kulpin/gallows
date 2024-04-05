@@ -7,6 +7,7 @@ import text
 import logger
 import char
 
+import asyncio
 import numpy as np
 import math
 import time
@@ -169,7 +170,8 @@ async def bot_word_len_match(callback: types.CallbackQuery, state: FSMContext):
         moment:float = time.time()
         if moment - redrawMoment > 0.5: # provide intervals to suppress weird Telegram errors
             await gd.redrawAll(callback.message)
-            redrawMoment = moment      
+            redrawMoment = moment 
+            await asyncio.sleep(0)     # prevent blocking the task 
 
     bd.guessedWord   = await findRandomComplexWord(bd.wordLen, showProgress)
 
