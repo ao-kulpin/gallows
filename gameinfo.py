@@ -60,7 +60,9 @@ class MessageHandle:
                     parms["reply_markup"] = self.gMsg.getMarkup()
 
                 if self.tMsg:
-                    await updater(**parms)
+                    if not self.gMsg.getPhoto() or self.photoCount != self.gMsg.getPhotoCount():
+                      # prevent redrawing the same photo
+                      await updater(**parms)
                 else:
                     newMsg = await updater(**parms)
 
