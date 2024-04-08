@@ -35,14 +35,11 @@ class MessageHandle:
 
     async def redraw(self, userMsg: Message) -> None:
         with suppress(TelegramBadRequest):
-
-            updater = (self.tMsg.edit_media if self.gMsg.getPhoto() else self.tMsg.edit_text)  if self.tMsg else \
-                      (userMsg.answer_photo if self.gMsg.getPhoto() else userMsg.answer)
             newMsg:Message = None
         
             if not self.tMsg \
-                or self.gMsg.getPhoto() and self.photoCount != self.gMsg.getPhotoCount() \
-                or not self.gMsg.getPhoto() and self.changeCount != self.gMsg.getChangeCount():
+                or self.photoCount != self.gMsg.getPhotoCount() \
+                or self.changeCount != self.gMsg.getChangeCount():
                 # the message is really changed
 
                 updater = (self.tMsg.edit_media if self.gMsg.getPhoto() else self.tMsg.edit_text)  if self.tMsg else \
@@ -67,19 +64,12 @@ class MessageHandle:
                 else:
                     newMsg = await updater(**parms)
 
-                if self.gMsg.getPhoto():
-                    self.photoCount = self.gMsg.getPhotoCount()
+                if self.tMsg and self.gMsg.getPhoto():
+                    # update caption of the photo
+                    await self.tMsg.edit_caption(caption=self.gMsg.getText(), parse_mode="HTML")
 
-                if not self.gMsg.getPhoto() or not self.tMsg:
-                    self.changeCount = self.gMsg.getChangeCount()
-
-            if self.tMsg and self.gMsg.getPhoto() and self.changeCount != self.gMsg.getChangeCount():
-                # caption of the photo is changed
-                await self.tMsg.edit_caption(caption=self.gMsg.getText(), parse_mode="HTML")
+                self.photoCount = self.gMsg.getPhotoCount()
                 self.changeCount = self.gMsg.getChangeCount()
 
             if newMsg:
-                self.tMsg = newMsg            
-
-
-
+                self.tMsg = newMsg      
