@@ -42,7 +42,8 @@ async def drawUserGameState(state: FSMContext) -> None:
         # current game state is empty
         gd.setHeadText("")
     else:
-        successCount=len(ud.resolvedChars) - ud.resolvedChars.count(placeholder)
+        unresolveCount=ud.resolvedChars.count(placeholder)
+        successCount=len(ud.resolvedChars) - unresolveCount
         successCharsStr = ""
 
         for sc in ud.successChars:
@@ -58,7 +59,8 @@ async def drawUserGameState(state: FSMContext) -> None:
 
         gd.setHeadText(text.userGameState.format(resolvedChars=(" ".join(ud.resolvedChars)), wordLen=ud.wordLen,
                    failedCount=len(ud.failedChars), failedChars=", ".join(ud.failedChars),
-                   successCount=successCount, successChars=successCharsStr, failureRemain=failureRemain))
+                   successCount=successCount, successChars=successCharsStr, failureRemain=failureRemain,
+                   unresolveCount=unresolveCount))
         gd.setHeadPhoto(data.failurePhotos[failureRemain])                   
 
 def buildUserGuessCharKeyboad(resolvedChars: list[str], guessedChar: str, firstTry: bool = True):

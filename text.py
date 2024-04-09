@@ -65,7 +65,7 @@ logUserGuessStart = """
 userGuessFail = """
 Чёрт! Опять я лоханулся с буквой <i>{prevChar}</i> и петля затянулась сильнее. 
 Но Надежда еще жива!
-Эта Надежда связана с <b>буквой <i>{guessedChar}</i></b>
+Моя Надежда связана с <b>буквой <i>{guessedChar}</i></b>
 {keyboardHelp}
 """
 botGuessFail = """
@@ -76,8 +76,8 @@ botGuessFail = """
 """
 
 userGuessSuccess = """
-Ура! Наконец мне повезло с буквой <i>{prevChar}</i> и дышать стало чуть легче. 
-Давайте теперь попробуем <b>букву <i>{guessedChar}</i></b>
+Ура! Наконец, мне повезло с буквой <i>{prevChar}</i> и дышать стало чуть легче. 
+Теперь хочу попробовать <b>букву <i>{guessedChar}</i></b>!
 {keyboardHelp}
 """
 
@@ -182,19 +182,20 @@ logUserUnknownWord = """
 
 userGameState = """
 Ваше слово: <b><u>{resolvedChars}</u></b> ({wordLen} букв/ы)
-Мои ошибки ({failedCount}): {failedChars}
-Мои удачи ({successCount}): {successChars}
-До Вашей победы еще: <b>{failureRemain} ошибки</b>(ок)
+Мои (бота) ошибки (<b>{failedCount}</b>): {failedChars}
+Мои (бота) удачи (<b>{successCount}</b>): {successChars}
+До Вашей победы: <b>{failureRemain} ошибки(ок)</b>
+До моей (бота) победы: <b>{unresolveCount} неразгаданных букв(ы)</b>
 
 
 """
 
 botGameState = """
-Мое слово: <b><u>{resolvedChars}</u></b> ({wordLen} букв/ы)
-Ваши ошибки ({failedCount}): {failedChars}
-Ваши удачи ({successCount}): {successChars}
-До моей победы еще: <b>{failureRemain} ошибки</b>(ок)
+Мое (бота) слово: <b><u>{resolvedChars}</u></b> ({wordLen} букв/ы)
+Ваши ошибки (<b>{failedCount}</b>): {failedChars}
+Ваши удачи (<b>{successCount}</b>): {successChars}
 До Вашей победы: <b>{unresolveCount} неразгаданных букв(ы)</b>
+До моей (бота) победы: <b>{failureRemain} ошибки</b>(ок)
 
 """
 

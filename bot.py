@@ -61,6 +61,7 @@ async def cmd_start(message: types.Message, state: FSMContext):
 async def choise_actor(callback: types.CallbackQuery, state: FSMContext):
     gd = (await state.get_data())["gameData"]
     gd.setHeadPhoto("splash.jpg")
+    gd.setHeadText("")
     gd.setChatText(text.choiseActor.format(userName=gd.userName))
     gd.setChatMarkup(buildKeyboard(
         [
