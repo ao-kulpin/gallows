@@ -2,6 +2,7 @@ import asyncio
 import logging
 import numpy as np
 import numpy.typing as npt
+import signal
 
 from contextlib import suppress
 from random import randint
@@ -142,12 +143,26 @@ async def main():
 ###    for i in range(data.wordLenMax):    
 ###      print(f"{i}: {wordLens[i]}")  
 
-    print(f"{str(data.allRussWords.size)} words are loaded")
+    logger.put(text.logBotStart.format(wordCount = data.allRussWords.size))
 
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot, handle_as_tasks=True)  ############ handle_as_tasks=True
 
+class TermException(Exception):
+    def __init__(self, sigNum: int) :
+        self.sigNum = sigNum
+
+def terminateBot(sigNum: int, stack):
+    raise TermException(sigNum)
+
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    signal.signal(signal.SIGINT, terminateBot)
+    signal.signal(signal.SIGTERM, terminateBot)
+
+    try:
+        asyncio.run(main())
+    except TermException as te:
+        logger.put(text.logBotExit.format(sigNum=te.sigNum))
+        logger.close()        
 

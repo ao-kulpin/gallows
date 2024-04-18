@@ -1,4 +1,23 @@
 from datetime import datetime
+import data
+
+logHandle = None
 
 def put(s: str) -> None:
-    print(f"\n***** {datetime.now()}\n{s}\n*****\n")
+    global logHandle
+    if logHandle == None:
+        logHandle = open(data.logFileName, "at")
+
+    text = f"\n***** {datetime.now()}\n{s}\n"         
+    print(text)
+    logHandle.write(convertForLog(text))
+    close() # ?????
+
+def close() -> None:
+    global logHandle
+    if logHandle != None:
+        logHandle.close()
+        logHandle = None
+
+def convertForLog(s: str) -> str:
+    return s.replace(data.placeholder, data.textPlaceholder)        

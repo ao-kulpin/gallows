@@ -8,6 +8,14 @@ logUserStart = """
 {firstName} {lastName} вошел в бот
 """
 
+logBotStart = """
+Бот Gallows запущен (загружено {wordCount} слов)
+"""
+
+logBotExit = """
+Бот Gallows завершен (сигналом {sigNum})
+"""
+
 choiseActor = """
 Спасибо, <i>{userName}</i>, за Правильный выбор!
 Определите пож-та кто загадает слово:
