@@ -31,8 +31,6 @@ from aiogram.fsm.context import FSMContext
 
 from config_reader import config
 
-RussNounsFN = "russian_nouns_without_filter.txt"  #####"russian_nouns.txt"
-
 bot = Bot(token=config.bot_token.get_secret_value())
 dp = Dispatcher()
 dp.include_routers(useractor.router, botactor.router)
@@ -97,51 +95,8 @@ async def user_away(callback: types.CallbackQuery, state: FSMContext):
 # Start the bot
 async def main():
     print("Bot Gallows starting...")
-    print("Russian words loading...")
-    allLines: list[str]
-    try:
-        f = open(RussNounsFN, "r", encoding='utf-8')
-        allLines = np.array(f.readlines(), str)
-        f.close()
-    except:
-        print(f"Can't load file {RussNounsFN}")
-        return
-    
-    print(f"File {RussNounsFN} is loaded")
-    data.allRussWords = np.empty(allLines.size, dtype=object)
-    wordCount = 0
-    actualLenMax = 0
-    actualLenMin = 100
-    wordLens = np.zeros(data.wordLenMax + 1, dtype=int)
-    for line in allLines:
-        word = line[:-1].upper()
-        ### print(f"word:{word}")
-        data.allRussWords[wordCount] = word
-        lw = len(word)
-        wordLens[lw] +=1
-        if actualLenMax < lw: actualLenMax = lw
-        if actualLenMin > lw: actualLenMin = lw
-        wordCount += 1
-        ### print(f"words: {data.allRussWords}")        
 
-    data.wordsByLen = np.empty(actualLenMax + 1, dtype=object)
-    for wl in range(actualLenMax + 1):
-        data.wordsByLen[wl] = np.empty(wordLens[wl], dtype=int)
-
-    wordLenCounts = np.zeros(actualLenMax + 1, dtype=int) 
-
-    for wi in range(data.allRussWords.size):
-        wl: int = len(data.allRussWords[wi])
-        ### print(f"wi {wi}/{data.allRussWords[wi]}")
-        wlc: int = wordLenCounts[wl]
-        data.wordsByLen[wl][wlc] = wi
-        wordLenCounts[wl] += 1
-
-###    for wli in range(data.wordsByLen.size):
-###        print(f"wli({wli}:{data.wordsByLen[wli].size})->{[data.allRussWords[i] for i in data.wordsByLen[wli]]}")
-    
-###    for i in range(data.wordLenMax):    
-###      print(f"{i}: {wordLens[i]}")  
+    data.loadDictionary()
 
     logger.put(text.logBotStart.format(wordCount = data.allRussWords.size))
 
