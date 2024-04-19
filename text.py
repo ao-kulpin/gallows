@@ -52,7 +52,7 @@ userGuessStart = """
 """
 
 botRandomWord = """
-Подбираю милое словцо: {percent}% ...
+Ищу подходящее словечко для Вас: {percent}% ...
 """
 
 logBotGuessWord = """

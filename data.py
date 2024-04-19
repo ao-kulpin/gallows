@@ -9,7 +9,7 @@ wordLenMin = 2
 failureNumber = 6
 wordsByLen = npt.ArrayLike = None
 startUserWordLen = 6
-startBotWordLen  = 7
+startBotWordLen  = 9
 botWordLenMin = 4
 botWordLenMax = 11
 
