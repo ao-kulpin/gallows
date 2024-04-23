@@ -42,8 +42,8 @@ async def cmd_start(message: types.Message, state: FSMContext):
     ud = gd.userData
     await state.set_data({"gameData": gd})
     gd.setHeadPhoto("splash.jpg")
-    gd.setHeadText(text.gameRules)
-    gd.setChatText(text.userGreet.format(userName=gd.userName))
+    gd.setHeadText(text.introduction.format(userName=gd.userName, failureNumber=data.failureNumber))
+    gd.setChatText(text.userInvite)
     gd.setChatMarkup(buildKeyboard(
         [
             [["Да, самое время поиграть", "choise_actor"]],
