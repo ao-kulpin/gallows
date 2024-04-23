@@ -72,12 +72,7 @@ async def choise_actor(callback: types.CallbackQuery, state: FSMContext):
 
     await state.set_state("choiseActor")
 
-
-
-@dp.callback_query(StateFilter("userStart", "userBotWin", "userUserWin", "userUnknownWord", 
-                               "botUserWin", "botBotWin"),  
-                  F.data.in_(["user_away", "noreplay"]))
-async def user_away(callback: types.CallbackQuery, state: FSMContext):
+async def botExit(message: types.Message, state: FSMContext) -> None:
     gd = (await state.get_data())["gameData"]
     ud = gd.userData
 
@@ -87,11 +82,25 @@ async def user_away(callback: types.CallbackQuery, state: FSMContext):
     gd.setHeadPhoto("splash.jpg")
 
     gd.setChatMarkup(None)
-    await gd.redrawAll(callback.message)
+    await gd.redrawAll(message)
 
     logger.put(text.logUserAway.format(userName=gd.userName))
 
     await state.set_state("userAway")
+
+@dp.message(Command("exit"))
+async def cmd_exit(message: types.Message, state: FSMContext):
+    gd = GameData(userName=message.from_user.first_name)
+    ud = gd.userData
+    await state.set_data({"gameData": gd})
+    await botExit(message, state)
+    
+
+@dp.callback_query(StateFilter("userStart", "userBotWin", "userUserWin", "userUnknownWord", 
+                               "botUserWin", "botBotWin"),  
+                  F.data.in_(["user_away", "noreplay"]))
+async def user_away(callback: types.CallbackQuery, state: FSMContext):
+    await botExit(callback.message, state)
 
 # Start the bot
 async def main():
