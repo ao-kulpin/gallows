@@ -91,6 +91,8 @@ async def toUserWinState(userMsg: Message, state: FSMContext) -> bool:
         gd.setChatMarkup(buidUserReplayKeyboad())
 
         await drawBotGameState(state)
+        gd.setHeadPhoto("winner.jpg")
+        
         await gd.redrawAll(userMsg)
 
         logger.put(text.logBotUserWin.format(userName=gd.userName, guessedWord=bd.guessedWord))
