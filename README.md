@@ -6,3 +6,7 @@
 Запуск бота:
 
 python3 bot.py
+
+Работающий интстанс:
+
+https://t.me/KulpinGallowsBot
