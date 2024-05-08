@@ -110,8 +110,8 @@ async def main():
 
     logger.put(text.logBotStart.format(wordCount = data.allRussWords.size))
 
-    await bot.delete_webhook(drop_pending_updates=True)  # drop_pending_updates=True
-    await dp.start_polling(bot, handle_as_tasks=True)  ############ handle_as_tasks=True
+    await bot.delete_webhook(drop_pending_updates=True)
+    await dp.start_polling(bot, handle_as_tasks=True)
 
 class TermException(Exception):
     def __init__(self, sigNum: int) :
