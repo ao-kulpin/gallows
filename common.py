@@ -14,3 +14,6 @@ def buidUserReplayKeyboad():
         [
             [["Да, с радостью", "replay"], ["Нет, надоело", "noreplay"]]
         ])
+
+def wordLenSuffix(worrdLen: int):
+    return str(worrdLen) + ("х" if worrdLen < 5 else "ти")

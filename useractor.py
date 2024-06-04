@@ -1,7 +1,6 @@
 from gameinfo import GameData
 from wordset import WordSet
-from common import buidUserReplayKeyboad, buildKeyboard
-
+from common import buidUserReplayKeyboad, buildKeyboard, wordLenSuffix
 import data
 from data import placeholder
 import text
@@ -18,11 +17,12 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 router = Router()
 
 def buildUserWordLenKeyboad(wordLen: int):
+    wlSuffix: str = wordLenSuffix(wordLen)
     return buildKeyboard(
         [
-            ([["меньше чем " + str(wordLen), "word_len_dec"]] if wordLen > data.wordLenMin else []) 
+            ([["меньше " + wlSuffix, "word_len_dec"]] if wordLen > data.wordLenMin else []) 
               + [[str(wordLen) + " букв(ы)", "word_len_match"]] 
-              + ([["больше чем " + str(wordLen), "word_len_inc"]] 
+              + ([["больше " + wlSuffix, "word_len_inc"]] 
                     if wordLen < data.wordsByLen.size - 1 else []),
             map(lambda i: [placeholder, "char_" + str(i)], range(wordLen))
         ]
