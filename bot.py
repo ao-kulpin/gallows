@@ -28,10 +28,13 @@ from aiogram.filters.callback_data import CallbackData
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
+from aiogram.client.session.aiohttp import AiohttpSession
 
 from config_reader import config
 
-bot = Bot(token=config.bot_token.get_secret_value())
+proxyURL= 'http://proxy.server:3128'
+session = AiohttpSession(proxy=proxyURL)
+bot = Bot(token=config.bot_token.get_secret_value(), session=session)
 dp = Dispatcher()
 dp.include_routers(useractor.router, botactor.router)
 logging.basicConfig(level=logging.INFO)
@@ -111,6 +114,7 @@ async def main():
     logger.put(text.logBotStart.format(wordCount = data.allRussWords.size))
 
     await bot.delete_webhook(drop_pending_updates=True)
+
     await dp.start_polling(bot, handle_as_tasks=True)
 
 class TermException(Exception):
