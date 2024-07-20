@@ -42,8 +42,13 @@ class MessageHandle:
                 or self.changeCount != self.gMsg.getChangeCount():
                 # the message is really changed
 
-                updater = (self.tMsg.edit_media if self.gMsg.getPhoto() else self.tMsg.edit_text)  if self.tMsg else \
-                          (userMsg.answer_photo if self.gMsg.getPhoto() else userMsg.answer)
+                updater = (self.tMsg.edit_media if self.gMsg.getPhoto()     \
+                                                else self.tMsg.edit_text)   \
+                                                                            \
+                                                            if self.tMsg else \
+                                                                            \
+                          (userMsg.answer_photo if self.gMsg.getPhoto()     \
+                                                else userMsg.answer)
 
                 parms = {"parse_mode": "html"}
                 if self.gMsg.getPhoto():
