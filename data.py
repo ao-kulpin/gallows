@@ -23,19 +23,19 @@ textPlaceholder = "?"
 failurePhotos = ("error0.jpg", "error1.jpg", "error2.jpg", 
                  "error3.jpg", "error4.jpg", "error5.jpg", "error6.jpg")
 
-def loadDictionary() -> None :
+def loadDictionary(inputFN: str) -> None :
     global allRussWords, wordLenMax, wordsByLen
     print("Russian words loading...")
     allLines: list[str]
     try:
-        f = open(RussNounsFN, "r", encoding='utf-8')
+        f = open(inputFN, "r", encoding='utf-8')
         allLines = np.array(f.readlines(), str)
         f.close()
     except:
-        print(f"Can't load file {RussNounsFN}")
+        print(f"Can't load file {inputFN}")
         return
     
-    print(f"File {RussNounsFN} is loaded")
+    print(f"File {inputFN} is loaded")
     allRussWords = np.empty(allLines.size, dtype=object)
     wordCount = 0
     actualLenMax = 0
