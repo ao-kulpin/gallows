@@ -6,7 +6,7 @@ logHandle = None
 def put(s: str) -> None:
     global logHandle
     if logHandle == None:
-        logHandle = open(data.logFileName, "at")
+        logHandle = open(data.logFileName, "at", encoding='utf-8')
 
     text = f"\n***** {datetime.now()}\n{s}\n"         
     print(text)
