@@ -1,5 +1,5 @@
 from gameinfo import GameData
-from wordset import WordSet, findRandomComplexWord
+from wordset import WordSet, findRandomComplexWord, chooseComplexWord
 from common import buidUserReplayKeyboad, buildKeyboard, wordLenSuffix
 import data
 from data import placeholder
@@ -176,7 +176,8 @@ async def bot_word_len_match(callback: types.CallbackQuery, state: FSMContext):
             redrawMoment = moment 
             await asyncio.sleep(0)     # prevent blocking the task 
 
-    bd.guessedWord   = await findRandomComplexWord(bd.wordLen, showProgress)
+    # bd.guessedWord   = await findRandomComplexWord(bd.wordLen, showProgress)
+    bd.guessedWord   = await chooseComplexWord(bd.wordLen)
 
     bd.wordLen = len(bd.guessedWord)
 

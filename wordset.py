@@ -69,7 +69,7 @@ class WordStore:
 
 prevFinds = WordStore()        
 
-async def findRandomComplexWord(wordLen, showProgress) ->str:
+async def findRandomComplexWord(wordLen, showProgress) -> str:
     global fullWordList
     words = None
     if wordLen == None:
@@ -108,5 +108,27 @@ async def findRandomComplexWord(wordLen, showProgress) ->str:
     else:
         prevFinds.add(complexWord, maxComplexity)
         return complexWord
+
+async def chooseComplexWord(wordLen) -> str:
+    global fullWordList
+    words = None
+    if wordLen == None:
+        if fullWordList == None:
+            fullWordList = range(len(data.allRussWords))
+        words = fullWordList
+    else:
+        words = data.wordsByLen[wordLen]
+
+    wordsSize: int = len(words)  
+    pos0 = wordsSize * data.complexWordZone
+    pos = math.floor(pos0 + (wordsSize - pos0) * np.random.random_sample())
+    wi = words[pos]
+
+    complexWord = data.getRussWord(wi)
+    wc = data.getComplexity(wi)
+
+    print(f"\n *** chooseComplexWord->{complexWord}(complexity={wc})")
+
+    return complexWord
 
 

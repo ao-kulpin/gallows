@@ -148,7 +148,8 @@ async def createBot():
 
 # Start the bot
 async def main():
-    data.loadDictionary()
+    #### data.loadDictionary(data.RussNounsFN)
+    data.loadComplexWords(data.complexWordsFN)
 
     logger.put(text.logBotStart.format(wordCount = data.allRussWords.size))
 
