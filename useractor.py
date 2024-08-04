@@ -250,7 +250,7 @@ async def user_no_char(callback: types.CallbackQuery, state: FSMContext):
     if ud.candidates.getSize() > 150:
         print("too many")
     else:        
-        print(ud.candidates.getWords())                                                                       
+        print(sorted(ud.candidates.getWords()))                                                                       
 
 @router.callback_query(StateFilter("userCharGuess"), F.data.startswith("char_"))
 async def user_open_char(callback: types.CallbackQuery, state: FSMContext):
